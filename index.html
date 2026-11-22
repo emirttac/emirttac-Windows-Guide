@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genel Bakış ve Kapsam — Windows 11 Kurulum Medyası Servisleme</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left">
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menü">☰</button>
+      <a class="site-title" href="index.html">Windows 11 Kurulum Medyası Servisleme</a>
+    </div>
+    <div class="header-right">
+      <span class="badge">Sürüm 2.0 · 26H2 (26300)</span>
+      <button id="theme-toggle" class="theme-toggle" type="button">Koyu Tema</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Bölümler">
+      <p class="nav-group-title">Bölümler</p>
+      <ul class="nav-list">
+        <li>
+          <a class="nav-link active" href="index.html">1–2. Genel Bakış ve Kapsam</a>
+          <ul class="nav-sub">
+            <li><a href="#kapsam">1. Kapsam ve Sınırlar</a></li>
+            <li><a href="#referans-medya">2. Referans Medya ve Doğrulama</a></li>
+          </ul>
+        </li>
+        <li><a class="nav-link" href="medya-ve-araclar.html">3–4. Ön Koşullar ve Medya Yapısı</a></li>
+        <li><a class="nav-link" href="servisleme.html">5–6. WIM Mimarisi ve Servisleme</a></li>
+        <li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Önyükleme, ISO ve Otomasyon</a></li>
+        <li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Kayıt Defteri ve Uygulamalar</a></li>
+        <li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</a></li>
+        <li><a class="nav-link" href="sorun-giderme.html">14–16. Sorun Giderme, Sözlük ve Kaynaklar</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <div class="content-inner">
+        <h1>Windows 11 Kurulum Medyası Servisleme: Microsoft Yerel Araçlarıyla Teknik Referans</h1>
+
+        <blockquote>
+          <p><strong>Kapsam:</strong> Üçüncü taraf araç kullanmadan, yalnızca Microsoft araçlarıyla (DISM, Dism PowerShell modülü, <code>reg.exe</code>, <code>oscdimg</code>, Windows Setup) resmi Windows 11 kurulum medyasının incelenmesi, çevrimdışı olarak servislenmesi ve yeniden paketlenmesi için kavramsal bir referanstır.</p>
+          <p><strong>Hedef:</strong> Windows 11, sürüm 26H2 (yapı 26300) ve destekli önceki sürümler<br>
+          <strong>Son doğrulama:</strong> 22 Kasım 2026</p>
+          <p>Bu belge Microsoft tarafından onaylanmış bir kılavuz değildir. Microsoft Learn belgeleriyle karşılaştırılarak hazırlanmıştır. Windows, Microsoft Corporation'ın ticari markasıdır.</p>
+        </blockquote>
+
+        <h2 id="kapsam">1. Kapsam ve Sınırlar</h2>
+        <p>Bu belge aşağıdakileri kapsar:</p>
+        <ul>
+          <li>Kurulum medyasının yapısı ve WIM/indeks mimarisi</li>
+          <li>Çevrimdışı imaj servisleme (bağlama, değiştirme, kaydetme veya atma)</li>
+          <li>Önyüklenebilir ISO üretimi ve UDF / ISO 9660 kararları</li>
+          <li>Windows Setup betikleri ve yanıt dosyası mekanizmaları</li>
+          <li>Doğrulama, günlükler ve sorun giderme</li>
+        </ul>
+
+        <p>Kapsam dışıdır:</p>
+        <ul>
+          <li>Sistem gereksinimi denetimlerinin atlatılması</li>
+          <li>Windows etkinleştirme (activation) mekanizmalarının değiştirilmesi</li>
+          <li>Secure Boot, BitLocker, Windows Defender ve bellek bütünlüğü gibi güvenlik özelliklerinin devre dışı bırakılması</li>
+          <li>Microsoft Edge ve WebView2 Runtime'ın kaldırılması (bkz. <a href="kayit-defteri-ve-uygulamalar.html#edge-webview2">10.4</a>)</li>
+          <li>Üçüncü taraf imaj düzenleme araçları</li>
+        </ul>
+
+        <h2 id="referans-medya">2. Referans Medya ve Doğrulama Durumu</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Özellik</th>
+                <th>Değer</th>
+                <th>Doğrulama kaynağı</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Dosya adı</td>
+                <td><code>Windows11_Client_x64_tr-tr_26300_9457.iso</code></td>
+                <td>Dosya adı</td>
+              </tr>
+              <tr>
+                <td>Sürüm ve yapı</td>
+                <td>Windows 11 26H2, 10.0.26300.9457</td>
+                <td><code>install.wim</code> meta verisi, Microsoft sürüm tablosu</td>
+              </tr>
+              <tr>
+                <td>Yayın (yapı)</td>
+                <td>2026-09-29, GA kanalı temel yapısı</td>
+                <td>Microsoft Windows 11 sürüm bilgileri</td>
+              </tr>
+              <tr>
+                <td>Dil ve mimari</td>
+                <td>tr-TR, x64</td>
+                <td><code>install.wim</code> meta verisi</td>
+              </tr>
+              <tr>
+                <td><code>sources\install.wim</code></td>
+                <td>7.795.812.908 bayt (7,26 GiB)</td>
+                <td>Dosya boyutu</td>
+              </tr>
+              <tr>
+                <td><code>sources\boot.wim</code></td>
+                <td>613.041.691 bayt (yaklaşık 585 MiB)</td>
+                <td>Dosya boyutu</td>
+              </tr>
+              <tr>
+                <td>BIOS önyükleme</td>
+                <td><code>boot\etfsboot.com</code></td>
+                <td>Dosya varlığı</td>
+              </tr>
+              <tr>
+                <td>UEFI önyükleme</td>
+                <td><code>efi\microsoft\boot\efisys.bin</code>, <code>efisys_noprompt.bin</code></td>
+                <td>Dosya varlığı</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p><strong>Güncellik notu:</strong> Bu yapı (26300.9457), 26H2 için yayımlanan en güncel kümülatif yapının (26300.10075, 2026-11-19) gerisindedir. Kurulum sonrasında Windows Update ile veya çevrimdışı servisleme ile güncellenmelidir.</p>
+        <p><strong>Doğrulama kapsamı:</strong> Bu belgedeki gözlemler; WIM XML meta verisinin ayrıştırılmasından, dosya varlığı ve boyut kontrollerinden ve winget paket meta verisinden alınmıştır. DISM bağlama, kaydetme ve ISO üretimi yönetici yetkisi gerektirdiğinden çalıştırılmamıştır. İlgili bölümler Microsoft Learn belgeleriyle eşleştirilmiştir.</p>
+
+        <nav class="pager" aria-label="Sayfa gezintisi">
+          <a class="pager-link next" href="medya-ve-araclar.html">
+            <span class="pager-label">Sonraki →</span>
+            <span class="pager-title">3–4. Ön Koşullar ve Medya Yapısı</span>
+          </a>
+        </nav>
+
+        <footer class="site-footer">
+          Belge sürümü: 2.0 · Son gözden geçirme: 22 Kasım 2026
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>

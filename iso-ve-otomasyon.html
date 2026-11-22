@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Önyükleme, ISO ve Otomasyon — Windows 11 Kurulum Medyası Servisleme</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left">
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menü">☰</button>
+      <a class="site-title" href="index.html">Windows 11 Kurulum Medyası Servisleme</a>
+    </div>
+    <div class="header-right">
+      <span class="badge">Sürüm 2.0 · 26H2 (26300)</span>
+      <button id="theme-toggle" class="theme-toggle" type="button">Koyu Tema</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Bölümler">
+      <p class="nav-group-title">Bölümler</p>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">1–2. Genel Bakış ve Kapsam</a></li>
+        <li><a class="nav-link" href="medya-ve-araclar.html">3–4. Ön Koşullar ve Medya Yapısı</a></li>
+        <li><a class="nav-link" href="servisleme.html">5–6. WIM Mimarisi ve Servisleme</a></li>
+        <li>
+          <a class="nav-link active" href="iso-ve-otomasyon.html">7–8. Önyükleme, ISO ve Otomasyon</a>
+          <ul class="nav-sub">
+            <li><a href="#iso-uretimi">7. Önyükleme ve ISO Üretimi</a></li>
+            <li><a href="#oscdimg">7.2 oscdimg parametre referansı</a></li>
+            <li><a href="#dosya-sistemi">7.3 Dosya sistemi kararı</a></li>
+            <li><a href="#otomasyon">8. Kurulum Otomasyonu</a></li>
+            <li><a href="#unattend">8.1 Yanıt dosyası (unattend.xml)</a></li>
+            <li><a href="#setupcomplete">8.2 SetupComplete.cmd</a></li>
+            <li><a href="#errorhandler">8.3 ErrorHandler.cmd</a></li>
+          </ul>
+        </li>
+        <li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Kayıt Defteri ve Uygulamalar</a></li>
+        <li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</a></li>
+        <li><a class="nav-link" href="sorun-giderme.html">14–16. Sorun Giderme, Sözlük ve Kaynaklar</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <div class="content-inner">
+        <h1>Önyükleme, ISO Üretimi ve Kurulum Otomasyonu</h1>
+
+        <h2 id="iso-uretimi">7. Önyükleme ve ISO Üretimi</h2>
+
+        <h3>7.1 Önyükleme modeli</h3>
+        <ul>
+          <li><strong>BIOS:</strong> El Torito girdisi, platform kimliği <code>0x00</code>, dosya <code>boot\etfsboot.com</code>.</li>
+          <li><strong>UEFI:</strong> El Torito girdisi, platform kimliği <code>0xEF</code>, dosya <code>efi\microsoft\boot\efisys.bin</code>.</li>
+          <li><strong>Çoklu önyükleme:</strong> Tek komutta iki girdi tanımlanır (<code>-bootdata:2</code>). Her girdi <code>p</code> (platform), <code>e</code> (disket emülasyonunu kapatır) ve <code>b</code> (önyükleme sektörü dosyası) ile belirtilir.</li>
+        </ul>
+
+        <h3 id="oscdimg">7.2 oscdimg parametre referansı</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Parametre</th>
+                <th>Açıklama</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>-m</code></td>
+                <td>Varsayılan imaj boyut sınırını yok sayar. <code>-maxsize</code> ile birlikte kullanılamaz.</td>
+              </tr>
+              <tr>
+                <td><code>-o</code></td>
+                <td>Yinelenen dosyaları MD5 ile karşılaştırır ve her birini yalnızca bir kez kodlar. <code>-oc</code> bayt bayt karşılaştırma yapar ve daha yavaştır.</td>
+              </tr>
+              <tr>
+                <td><code>-u1</code></td>
+                <td>Hem UDF hem ISO 9660 (8.3 adları) yazar. Hedef sistemin uyumluluğuna göre seçilir ve her iki görünümün de test edilmesi önerilir.</td>
+              </tr>
+              <tr>
+                <td><code>-u2</code></td>
+                <td>Yalnızca UDF yazar. UDF okuyamayan sistemler yalnızca bilgilendirme dosyası görür.</td>
+              </tr>
+              <tr>
+                <td><code>-udfver102</code></td>
+                <td>UDF 1.02 sürümünü belirtir.</td>
+              </tr>
+              <tr>
+                <td><code>-l&lt;etiket&gt;</code></td>
+                <td>Birim etiketi. Boşluk içermemelidir.</td>
+              </tr>
+              <tr>
+                <td><code>-h</code></td>
+                <td>Gizli dosya ve dizinleri dahil eder.</td>
+              </tr>
+              <tr>
+                <td><code>-g</code></td>
+                <td>Zaman damgalarını UTC olarak kodlar.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Sözdizimi şablonu (yer tutucularla):</p>
+        <pre><code>oscdimg -m -o -u2 -udfver102 -bootdata:2#p0,e,b"&lt;KAYNAK&gt;\boot\etfsboot.com"#pEF,e,b"&lt;KAYNAK&gt;\efi\microsoft\boot\efisys.bin" "&lt;KAYNAK&gt;" "&lt;HEDEF&gt;.iso"</code></pre>
+
+        <h3 id="dosya-sistemi">7.3 Dosya sistemi kararı</h3>
+        <ul>
+          <li><code>install.wim</code> (7,26 GiB) klasik ISO 9660 dosya sistemindeki 4 GiB'lik dosya sınırını aşar. Bu nedenle <code>install.wim</code> içeren medyada <strong>UDF zorunludur</strong> (<code>-u1</code> veya <code>-u2</code>).</li>
+          <li>USB medya oluşturulurken FAT32'nin 4 GiB dosya sınırı nedeniyle iki yol vardır:
+            <ul>
+              <li><strong>NTFS:</strong> Veri bölümü NTFS olarak biçimlendirilir. UEFI önyüklemesi için FAT32 önyükleme bölümü gerekir (çift bölümlü düzen).</li>
+              <li><strong>Bölme:</strong> <code>dism /Split-Image</code> ile <code>install.wim</code>, <code>.swm</code> parçalarına ayrılır. Parça boyutu FAT32 sınırının altında seçilmelidir (ör. 4000 MB). Setup, bölünmüş medyadan <code>setup.exe /InstallFrom:install.swm</code> ile çalışabilir.</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>7.4 ISO doğrulama</h3>
+        <ul>
+          <li>Üretilen ISO'nun SHA-256 özetini kaydedin: <code>Get-FileHash -Algorithm SHA256 &lt;ISO&gt;</code>.</li>
+          <li>Sanal makinede BIOS ve UEFI önyüklemesini ayrı ayrı test edin.</li>
+          <li>Medya içindeki <code>install.wim</code> için <code>dism /Get-ImageInfo</code> çıktısını arşivleyin.</li>
+        </ul>
+
+        <h2 id="otomasyon">8. Kurulum Sırasında ve Sonrasında Otomasyon</h2>
+
+        <h3 id="unattend">8.1 Yanıt dosyası (unattend.xml)</h3>
+        <ul>
+          <li>Windows Setup, yapılandırma geçişlerini (configuration passes) sırayla işler. Başlıca geçişler: <code>windowsPE</code>, <code>offlineServicing</code>, <code>generalize</code>, <code>specialize</code>, <code>auditSystem</code>, <code>auditUser</code> ve <code>oobeSystem</code>.</li>
+          <li><code>offlineServicing</code> geçişi, DISM ile çevrimdışı imaja uygulanabilir: <code>dism /Image:&lt;dizin&gt; /Apply-Unattend:&lt;dosya&gt;</code>. Bağımlılığı olan paket işlemlerinde doğru sıra bu yolla güvenle yönetilir.</li>
+          <li>Oturum açmadan sonra çalışacak komutlar <code>FirstLogonCommands</code> ile tanımlanır. Bu komutlar bir sonraki açılışta tetiklenir. Audit modunda tetiklenmemesi için <code>Microsoft-Windows-Deployment\Reseal\Mode = Audit</code> ayarı kullanılır.</li>
+          <li>Microsoft, uzun betiklerin kullanıcının masaüstüne ulaşmasını geciktirebileceği konusunda uyarır. Betikler kısa tutulmalıdır.</li>
+        </ul>
+
+        <h3 id="setupcomplete">8.2 SetupComplete.cmd</h3>
+        <ul>
+          <li><strong>Konum:</strong> <code>%WINDIR%\Setup\Scripts\SetupComplete.cmd</code></li>
+          <li><strong>Yetki:</strong> Yerel Sistem (LocalSystem)</li>
+          <li><strong>Zamanlama:</strong> Microsoft belgesi iki farklı zamanlama tanımlar. "Order of operations" bölümünde kurulum sonrasında ve oturum açma ekranından önce; giriş bölümünde ise masaüstü görüntülendikten hemen sonra çalıştığı belirtilir. Betik her iki durumda da doğru sonuç üretecek şekilde yazılmalıdır (idempotent).</li>
+          <li><strong>Çıkış kodu:</strong> Setup, betiğin çıkış kodunu denetlemez.</li>
+          <li><strong>Yeniden başlatma:</strong> Betik içinde <code>shutdown -r</code> gibi yeniden başlatma komutları kullanılmamalıdır. Kurulum durumu bozulur ve betik devam ettirilemez.</li>
+          <li><strong>Etki alanı:</strong> Etki alanına katılan makinelerde, betik tamamlanana kadar etki alanı grup ilkeleri uygulanmaz.</li>
+          <li><strong>Ürün anahtarı türü:</strong> Belgeye göre OEM ürün anahtarlarıyla yapılan kurulumlarda bu özellik, Enterprise ve Server sürümleri dışında devre dışı kalabilir.</li>
+          <li><strong>Günlük:</strong> <code>C:\Windows\Panther\UnattendGC\setupact.log</code></li>
+        </ul>
+
+        <h3 id="errorhandler">8.3 ErrorHandler.cmd</h3>
+        <ul>
+          <li><strong>Konum:</strong> <code>%WINDIR%\Setup\Scripts\ErrorHandler.cmd</code></li>
+          <li>Kurulum ciddi bir hatayla durduğunda çalışır. Yerel Sistem yetkisiyle senkron olarak yürütülür ve birden çok kez çağrılabilir. Bu nedenle idempotent yazılmalıdır.</li>
+          <li>Medya dışından <code>Setup /m:&lt;klasör&gt;</code> seçeneğiyle de sağlanabilir.</li>
+        </ul>
+
+        <h3>8.4 Sürüme özgü davranışlar</h3>
+        <ul>
+          <li><strong>Windows 11 Home:</strong> İlk kurulumda internet bağlantısı ve Microsoft Hesabı gerektirir (resmi gereksinimler belgesi). Kurulum otomasyonu planlanırken bu davranış dikkate alınmalıdır.</li>
+          <li><strong>OOBE ve hesap politikaları:</strong> Sürüme göre değişebilir. OOBE davranışını atlatmaya yönelik yöntemler bu belgenin kapsamı dışındadır.</li>
+        </ul>
+
+        <nav class="pager" aria-label="Sayfa gezintisi">
+          <a class="pager-link prev" href="servisleme.html">
+            <span class="pager-label">← Önceki</span>
+            <span class="pager-title">5–6. WIM Mimarisi ve Servisleme</span>
+          </a>
+          <a class="pager-link next" href="kayit-defteri-ve-uygulamalar.html">
+            <span class="pager-label">Sonraki →</span>
+            <span class="pager-title">9–10. Kayıt Defteri ve Uygulamalar</span>
+          </a>
+        </nav>
+
+        <footer class="site-footer">
+          Belge sürümü: 2.0 · Son gözden geçirme: 22 Kasım 2026
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>

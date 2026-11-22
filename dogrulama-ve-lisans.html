@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doğrulama, Yaşam Döngüsü ve Lisans — Windows 11 Kurulum Medyası Servisleme</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left">
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menü">☰</button>
+      <a class="site-title" href="index.html">Windows 11 Kurulum Medyası Servisleme</a>
+    </div>
+    <div class="header-right">
+      <span class="badge">Sürüm 2.0 · 26H2 (26300)</span>
+      <button id="theme-toggle" class="theme-toggle" type="button">Koyu Tema</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Bölümler">
+      <p class="nav-group-title">Bölümler</p>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">1–2. Genel Bakış ve Kapsam</a></li>
+        <li><a class="nav-link" href="medya-ve-araclar.html">3–4. Ön Koşullar ve Medya Yapısı</a></li>
+        <li><a class="nav-link" href="servisleme.html">5–6. WIM Mimarisi ve Servisleme</a></li>
+        <li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Önyükleme, ISO ve Otomasyon</a></li>
+        <li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Kayıt Defteri ve Uygulamalar</a></li>
+        <li>
+          <a class="nav-link active" href="dogrulama-ve-lisans.html">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</a>
+          <ul class="nav-sub">
+            <li><a href="#dogrulama">11. Doğrulama</a></li>
+            <li><a href="#kontrol-listesi">11.2 Kontrol listesi</a></li>
+            <li><a href="#yasam-dongusu">12. Sürüm Yaşam Döngüsü</a></li>
+            <li><a href="#guvenlik-lisans">13. Güvenlik, Lisans ve Dağıtım</a></li>
+          </ul>
+        </li>
+        <li><a class="nav-link" href="sorun-giderme.html">14–16. Sorun Giderme, Sözlük ve Kaynaklar</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <div class="content-inner">
+        <h1>Doğrulama, Sürüm Yaşam Döngüsü ve Lisans</h1>
+
+        <h2 id="dogrulama">11. Doğrulama</h2>
+
+        <h3>11.1 Test ortamı (Hyper-V)</h3>
+        <ul>
+          <li><strong>Sürüm:</strong> Windows Pro veya üzeri (istemci Hyper-V).</li>
+          <li><strong>Sanal makine:</strong> Generation 2. Secure Boot, Generation 2 sanal makinelerde varsayılan olarak etkindir.</li>
+          <li><strong>vTPM:</strong> Windows 11 TPM 2.0 gerektirir. Generation 2 sanal makineye vTPM eklenerek BitLocker ve TPM tabanlı özellikler sınanabilir.</li>
+          <li><strong>Donanım referansı (Microsoft resmi gereksinimleri):</strong> 64-bit, en az 2 çekirdekli 1 GHz+ işlemci; 4 GB+ RAM; 64 GB+ depolama; DirectX 12 ve WDDM 2.0 sürücü; UEFI Secure Boot destekli firmware; TPM 2.0; 720p (9") ekran.</li>
+        </ul>
+
+        <h3 id="kontrol-listesi">11.2 Kontrol listesi</h3>
+        <ul>
+          <li>ISO SHA-256 özeti kaydedildi</li>
+          <li><code>install.wim</code> indeksleri <code>dism /Get-ImageInfo</code> ile doğrulandı</li>
+          <li>BIOS ve UEFI önyüklemesi ayrı ayrı test edildi</li>
+          <li>Kurulan sürüm ve indeks eşleşiyor: <code>DISM /Online /Get-CurrentEdition</code></li>
+          <li><code>C:\Windows\Panther\UnattendGC\setupact.log</code> içinde betik eylemleri kayıtlı</li>
+          <li>Yeni yerel kullanıcıda varsayılan profil ayarları kontrol edildi</li>
+          <li>Hazır paket durumu <code>Get-AppxPackage -AllUsers</code> ile doğrulandı</li>
+          <li>Secure Boot durumu: <code>Confirm-SecureBootUEFI</code></li>
+          <li>Cihaz şifreleme durumu: <code>manage-bde -status</code></li>
+          <li>Windows Update durumu ve yapı numarası kontrol edildi</li>
+        </ul>
+
+        <h2 id="yasam-dongusu">12. Sürüm Yaşam Döngüsü ve Güncellemeler</h2>
+
+        <h3>12.1 Windows 11 sürüm durumu</h3>
+        <p>Kaynak: Microsoft Learn, Windows 11 sürüm bilgileri (2026-11-19 güncellemesi).</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sürüm (yapı)</th>
+                <th>Yayın (GA)</th>
+                <th>Home, Pro, Pro Education, Pro for Workstations destek sonu</th>
+                <th>Enterprise, Education destek sonu</th>
+                <th>Güncel yapı</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>26H2 (26300)</td>
+                <td>2026-09-29</td>
+                <td>2028-10-10</td>
+                <td>2029-10-09</td>
+                <td>26300.10075</td>
+              </tr>
+              <tr>
+                <td>26H1 (28000)</td>
+                <td>2026-02-10</td>
+                <td>2028-03-14</td>
+                <td>2029-03-13</td>
+                <td>28000.3620</td>
+              </tr>
+              <tr>
+                <td>25H2 (26200)</td>
+                <td>2025-09-30</td>
+                <td>2027-10-12</td>
+                <td>2028-10-10</td>
+                <td>26200.10075</td>
+              </tr>
+              <tr>
+                <td>24H2 (26100)</td>
+                <td>2024-10-01</td>
+                <td>Destek sona erdi</td>
+                <td>2027-10-12</td>
+                <td>26100.9974</td>
+              </tr>
+              <tr>
+                <td>23H2 (22631)</td>
+                <td>2023-10-31</td>
+                <td>Destek sona erdi</td>
+                <td>Destek sona erdi</td>
+                <td>22631.7714</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Ek notlar:</p>
+        <ul>
+          <li>Özellik güncellemeleri Home, Pro, Pro for Workstations ve Pro Education için 24 ay, Enterprise ve Education için 36 ay destek sağlar.</li>
+          <li>26H1 yalnızca 2026'da piyasaya çıkan yeni cihazlar içindir. 24H2 veya 25H2 cihazlarda yerinde yükseltme olarak sunulmaz. IoT Enterprise bu sürümde desteklenmez.</li>
+          <li>Enterprise LTSC 2024 (24H2 temelli) için destek sonu 2029-10-09'dur. IoT Enterprise LTSC 2024 için genişletilmiş destek sonu 2034-10-10'dur.</li>
+        </ul>
+
+        <h3>12.2 26H2 dağıtım modeli</h3>
+        <p>26H2, 24H2 ve 25H2 ile aynı bakım dalını (servicing branch) paylaşır. 24H2 ve 25H2 cihazlarda geçiş, etkinleştirme paketi (enablement package, eKB) ile yapılır. ISO medyası ise temiz kurulum ve yeniden imaj oluşturma için kullanılır (Windows Insider Blog, Release Preview duyurusu).</p>
+
+        <h3>12.3 Çevrimdışı güncelleme</h3>
+        <ul>
+          <li>Güncelleme paketleri <code>/Add-Package</code> ile eklenir. Paketin sürümü, mimarisi ve hedef imaj sürümü eşleşmelidir.</li>
+          <li>Servisleme sonrasında bileşen deposu temizlenebilir: <code>/Cleanup-Image /StartComponentCleanup</code>. <code>/ResetBase</code> eklenirse önceki bileşen sürümlerine geri dönüş kalıcı olarak kapanır.</li>
+          <li>Güncelleme sonrası yapı numarası, sürüm bilgileri sayfasındaki güncel yapıyla karşılaştırılmalıdır.</li>
+        </ul>
+
+        <h2 id="guvenlik-lisans">13. Güvenlik, Lisans ve Dağıtım Sınırları</h2>
+        <ul>
+          <li><strong>Kaynak:</strong> Yalnızca Microsoft'un resmi kaynaklarından alınmış medya kullanılmalıdır. SHA-256 özeti resmi yayınla karşılaştırılmalıdır.</li>
+          <li><strong>Lisans:</strong> Windows, Microsoft Yazılım Lisans Koşulları'na tabidir. Değiştirilmiş medyanın çoğaltılması, dağıtılması ve etkinleştirilmesi bu koşullarla sınırlanabilir. Hukuki değerlendirme gereklidir.</li>
+          <li><strong>Bu depo:</strong> Bu belgeyi içeren depoda Windows ISO içeriği (<code>install.wim</code>, <code>sources\</code>, <code>boot\</code>, <code>efi\</code> vb.) bulunmamalıdır. GitHub dosya başına 100 MiB sınırı uygular. Microsoft ikili dosyalarının yeniden yayımlanması lisans ihlali oluşturabilir.</li>
+          <li><strong>Güvenlik özellikleri:</strong> Secure Boot, cihaz şifreleme veya BitLocker, Windows Defender ve bellek bütünlüğü devre dışı bırakılmamalıdır.</li>
+          <li><strong>Güvenlik güncellemeleri:</strong> ADK ve servicing yamaları güncel tutulmalıdır (bkz. <a href="medya-ve-araclar.html#adk-politikasi">3.3</a>).</li>
+          <li><strong>Kurumsal alternatif:</strong> Yönetilen cihazlarda imaj düzenleme yerine Windows Autopilot ve Microsoft Intune gibi yönetim çözümleri tercih edilmelidir.</li>
+        </ul>
+
+        <nav class="pager" aria-label="Sayfa gezintisi">
+          <a class="pager-link prev" href="kayit-defteri-ve-uygulamalar.html">
+            <span class="pager-label">← Önceki</span>
+            <span class="pager-title">9–10. Kayıt Defteri ve Uygulamalar</span>
+          </a>
+          <a class="pager-link next" href="sorun-giderme.html">
+            <span class="pager-label">Sonraki →</span>
+            <span class="pager-title">14–16. Sorun Giderme, Sözlük ve Kaynaklar</span>
+          </a>
+        </nav>
+
+        <footer class="site-footer">
+          Belge sürümü: 2.0 · Son gözden geçirme: 22 Kasım 2026
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>

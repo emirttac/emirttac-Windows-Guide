@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorun Giderme, Sözlük ve Kaynaklar — Windows 11 Kurulum Medyası Servisleme</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left">
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menü">☰</button>
+      <a class="site-title" href="index.html">Windows 11 Kurulum Medyası Servisleme</a>
+    </div>
+    <div class="header-right">
+      <span class="badge">Sürüm 2.0 · 26H2 (26300)</span>
+      <button id="theme-toggle" class="theme-toggle" type="button">Koyu Tema</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Bölümler">
+      <p class="nav-group-title">Bölümler</p>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">1–2. Genel Bakış ve Kapsam</a></li>
+        <li><a class="nav-link" href="medya-ve-araclar.html">3–4. Ön Koşullar ve Medya Yapısı</a></li>
+        <li><a class="nav-link" href="servisleme.html">5–6. WIM Mimarisi ve Servisleme</a></li>
+        <li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Önyükleme, ISO ve Otomasyon</a></li>
+        <li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Kayıt Defteri ve Uygulamalar</a></li>
+        <li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</a></li>
+        <li>
+          <a class="nav-link active" href="sorun-giderme.html">14–16. Sorun Giderme, Sözlük ve Kaynaklar</a>
+          <ul class="nav-sub">
+            <li><a href="#gunlukler">14. Günlükler ve Sorun Giderme</a></li>
+            <li><a href="#sorun-matrisi">14.2 Sorun-çözüm matrisi</a></li>
+            <li><a href="#sozluk">15. Sözlük</a></li>
+            <li><a href="#kaynaklar">16. Kaynaklar</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <div class="content-inner">
+        <h1>Günlükler, Sorun Giderme, Sözlük ve Kaynaklar</h1>
+
+        <h2 id="gunlukler">14. Günlükler ve Sorun Giderme</h2>
+
+        <h3>14.1 Günlük konumları</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Konum</th>
+                <th>İçerik</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>X:\Windows\Panther\</code></td>
+                <td>Diske erişim öncesi kurulum günlükleri (WinPE)</td>
+              </tr>
+              <tr>
+                <td><code>%WINDIR%\Panther\</code></td>
+                <td>Disk yapılandırmasından sonraki kurulum eylemleri, <code>setuperr.log</code></td>
+              </tr>
+              <tr>
+                <td><code>%WINDIR%\Panther\UnattendGC\setupact.log</code></td>
+                <td>SetupComplete ve yanıt dosyası eylemleri</td>
+              </tr>
+              <tr>
+                <td><code>%WINDIR%\Panther\setup.etl</code></td>
+                <td>Kurulum performans olayları (Olay Görüntüleyici veya <code>wevtutil qe /lf</code> ile)</td>
+              </tr>
+              <tr>
+                <td><code>%WINDIR%\Logs\Dism\dism.log</code></td>
+                <td>DISM varsayılan günlüğü</td>
+              </tr>
+              <tr>
+                <td><code>%WINDIR%\Inf\setupapi*.log</code></td>
+                <td>PnP sürücü kurulum günlükleri</td>
+              </tr>
+              <tr>
+                <td><code>%WINDIR%\Minidump.dmp</code>, <code>%WINDIR%\Memory.dmp</code></td>
+                <td>Çekirdek hata dökümleri</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="sorun-matrisi">14.2 Sorun-çözüm matrisi</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Belirti</th>
+                <th>Olası neden</th>
+                <th>İlk kontrol</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Error: 740</code></td>
+                <td>Yükseltilmiş yetki yok</td>
+                <td>Yönetici komut istemi</td>
+              </tr>
+              <tr>
+                <td>Bağlama başarısız</td>
+                <td>Hedef dizin boş değil veya korumalı bir klasörde</td>
+                <td>Boş ve korumalı olmayan dizin</td>
+              </tr>
+              <tr>
+                <td>Ayırma başarısız</td>
+                <td>Dizinde açık dosya veya Gezgin penceresi</td>
+                <td>Pencereleri kapatın, <code>/Get-MountedImageInfo</code> çalıştırın</td>
+              </tr>
+              <tr>
+                <td>Bağlı imaj erişilemez</td>
+                <td>Beklenmeyen kesinti</td>
+                <td><code>/Remount-Image</code></td>
+              </tr>
+              <tr>
+                <td>ISO üretiminde dosya boyutu hatası</td>
+                <td>ISO 9660 4 GiB sınırı</td>
+                <td>UDF kullanın (<code>-u1</code> veya <code>-u2</code>)</td>
+              </tr>
+              <tr>
+                <td>USB'ye <code>install.wim</code> kopyalanamıyor</td>
+                <td>FAT32 4 GiB sınırı</td>
+                <td>NTFS düzeni veya <code>/Split-Image</code></td>
+              </tr>
+              <tr>
+                <td>SetupComplete çalışmadı</td>
+                <td>Dosya adı <code>.cmd.txt</code>, yanlış konum, OEM anahtarı kısıtı</td>
+                <td>Dosya uzantısı ve <code>setupact.log</code></td>
+              </tr>
+              <tr>
+                <td>Varsayılan profil ayarları görünmüyor</td>
+                <td>Mevcut kullanıcı profili (yalnızca yeni profiller etkilenir)</td>
+                <td>Yeni yerel kullanıcıyla test</td>
+              </tr>
+              <tr>
+                <td>Hazır uygulama hâlâ görünüyor</td>
+                <td>Mevcut kullanıcı kurulumu veya farklı paket adı</td>
+                <td><code>Get-AppxPackage -AllUsers</code></td>
+              </tr>
+              <tr>
+                <td>Duvar kağıdı değişmedi</td>
+                <td>Sürüme özgü dosya yolu</td>
+                <td>Medyadaki <code>Windows\Web</code> altındaki gerçek dosya adları</td>
+              </tr>
+              <tr>
+                <td>Önyükleme yapılmıyor</td>
+                <td>Yanlış platform girdisi, Secure Boot veya UDF uyumsuzluğu</td>
+                <td><code>-bootdata</code> platform kodları ve sanal makinede Secure Boot durumu</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Duvar kağıdı notu:</strong> Windows 11 varsayılan Bloom duvar kağıtlarının <code>Windows\Web\4K\Wallpaper\Windows</code> altında bulunduğu üçüncü taraf kaynaklarda belgelenmektedir. Eğitim materyallerindeki <code>Wallpaper\Windows\img0.jpg</code> yolu Windows 10 dönemine ait olabilir. Hedef medyada dosya adları doğrulanmalıdır.</p>
+
+        <h2 id="sozluk">15. Sözlük</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Terim</th>
+                <th>Açıklama</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ADK</td>
+                <td>Windows Assessment and Deployment Kit. DISM ve oscdimg gibi dağıtım araçlarını içerir.</td>
+              </tr>
+              <tr>
+                <td>Commit / Discard</td>
+                <td>Bağlı imajdaki değişiklikleri kaydetme veya atma</td>
+              </tr>
+              <tr>
+                <td>eKB</td>
+                <td>Enablement package. Mevcut bakım dalına etkinleştirme paketi.</td>
+              </tr>
+              <tr>
+                <td>El Torito</td>
+                <td>CD/DVD önyükleme standardı</td>
+              </tr>
+              <tr>
+                <td>Features on Demand (FoD)</td>
+                <td>İsteğe bağlı Windows özellikleri ve yetenekleri</td>
+              </tr>
+              <tr>
+                <td>Hive (kovan)</td>
+                <td>Kayıt defteri dosyası (ör. <code>NTUSER.DAT</code>)</td>
+              </tr>
+              <tr>
+                <td>Index</td>
+                <td>WIM içindeki imaj numarası</td>
+              </tr>
+              <tr>
+                <td>ISO 9660 / UDF / Joliet</td>
+                <td>Optik medya dosya sistemleri</td>
+              </tr>
+              <tr>
+                <td>LCU</td>
+                <td>Latest Cumulative Update. En güncel kümülatif güncelleme.</td>
+              </tr>
+              <tr>
+                <td>Mount / Unmount</td>
+                <td>WIM içeriğini klasöre bağlama veya ayırma</td>
+              </tr>
+              <tr>
+                <td>OOBE</td>
+                <td>Out-of-Box Experience. İlk kurulum deneyimi.</td>
+              </tr>
+              <tr>
+                <td>Provisioned package</td>
+                <td>Yeni kullanıcılar için imaja eklenmiş AppX/MSIX paketi</td>
+              </tr>
+              <tr>
+                <td><code>sources\sxs</code></td>
+                <td>Yan yana (side-by-side) bileşen deposu</td>
+              </tr>
+              <tr>
+                <td>TPM 2.0 / vTPM</td>
+                <td>Donanım veya sanal güvenilir platform modülü</td>
+              </tr>
+              <tr>
+                <td>UEFI / Secure Boot</td>
+                <td>Firmware standardı ve imzalı önyükleme doğrulaması</td>
+              </tr>
+              <tr>
+                <td>WIM / ESD / SWM</td>
+                <td>Windows imaj biçimleri: sıkıştırılmış imaj ve bölünmüş WIM</td>
+              </tr>
+              <tr>
+                <td>WinPE</td>
+                <td>Windows Preinstallation Environment</td>
+              </tr>
+              <tr>
+                <td>WRP</td>
+                <td>Windows Resource Protection. Korumalı sistem dosyaları.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="kaynaklar">16. Kaynaklar</h2>
+        <ul>
+          <li><a href="https://www.microsoft.com/software-download/windows11" target="_blank" rel="noopener">Windows 11 indirme</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information" target="_blank" rel="noopener">Windows 11 sürüm bilgileri</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements" target="_blank" rel="noopener">Windows 11 gereksinimleri</a></li>
+          <li><a href="https://blogs.windows.com/windows-insider/2026/08/27/releasing-windows-11-version-26h2-to-the-release-preview-channel/" target="_blank" rel="noopener">Windows 11 26H2 Release Preview duyurusu</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install" target="_blank" rel="noopener">Windows ADK kurulumu</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-image-management-command-line-options-s14" target="_blank" rel="noopener">DISM image management komutları</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/mount-and-modify-a-windows-image-using-dism" target="_blank" rel="noopener">İmajı bağlama ve değiştirme</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/add-or-remove-packages-offline-using-dism" target="_blank" rel="noopener">Çevrimdışı paket ekleme ve kaldırma</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/deploy-net-framework-35-by-using-deployment-image-servicing-and-management--dism?view=windows-11" target="_blank" rel="noopener">.NET Framework 3.5 (DISM ile çevrimdışı kurulum)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/oscdimg-command-line-options" target="_blank" rel="noopener">Oscdimg komut satırı seçenekleri</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/add-a-custom-script-to-windows-setup" target="_blank" rel="noopener">Kuruluma özel betik ekleme (SetupComplete, ErrorHandler)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-setup-log-files-and-event-logs" target="_blank" rel="noopener">Windows Setup günlük dosyaları</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/split-a-windows-image--wim--file-to-span-across-multiple-dvds?view=windows-11" target="_blank" rel="noopener">WIM dosyasını bölme</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/customize-the-default-user-profile-by-using-copyprofile?view=windows-11" target="_blank" rel="noopener">Varsayılan kullanıcı profili (CopyProfile)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/powershell/module/dism/remove-appxprovisionedpackage" target="_blank" rel="noopener">Remove-AppxProvisionedPackage</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/generation-2-virtual-machine-security-features" target="_blank" rel="noopener">Hyper-V Generation 2 güvenlik özellikleri</a></li>
+        </ul>
+
+        <nav class="pager" aria-label="Sayfa gezintisi">
+          <a class="pager-link prev" href="dogrulama-ve-lisans.html">
+            <span class="pager-label">← Önceki</span>
+            <span class="pager-title">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</span>
+          </a>
+        </nav>
+
+        <footer class="site-footer">
+          Belge sürümü: 2.0 · Son gözden geçirme: 22 Kasım 2026
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>

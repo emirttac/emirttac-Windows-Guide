@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kayıt Defteri ve Uygulamalar — Windows 11 Kurulum Medyası Servisleme</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left">
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menü">☰</button>
+      <a class="site-title" href="index.html">Windows 11 Kurulum Medyası Servisleme</a>
+    </div>
+    <div class="header-right">
+      <span class="badge">Sürüm 2.0 · 26H2 (26300)</span>
+      <button id="theme-toggle" class="theme-toggle" type="button">Koyu Tema</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Bölümler">
+      <p class="nav-group-title">Bölümler</p>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">1–2. Genel Bakış ve Kapsam</a></li>
+        <li><a class="nav-link" href="medya-ve-araclar.html">3–4. Ön Koşullar ve Medya Yapısı</a></li>
+        <li><a class="nav-link" href="servisleme.html">5–6. WIM Mimarisi ve Servisleme</a></li>
+        <li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Önyükleme, ISO ve Otomasyon</a></li>
+        <li>
+          <a class="nav-link active" href="kayit-defteri-ve-uygulamalar.html">9–10. Kayıt Defteri ve Uygulamalar</a>
+          <ul class="nav-sub">
+            <li><a href="#kayit-defteri">9. Kullanıcı Varsayılanları ve Kayıt Defteri</a></li>
+            <li><a href="#referans-anahtarlar">9.2 Referans kayıt defteri anahtarları</a></li>
+            <li><a href="#yukleme-bosaltma">9.3 Yükleme ve boşaltma kuralları</a></li>
+            <li><a href="#hazir-uygulamalar">10. Hazır (Provisioned) Uygulamalar</a></li>
+            <li><a href="#komut-modeli">10.2 Komut modeli</a></li>
+            <li><a href="#edge-webview2">10.4 Microsoft Edge ve WebView2</a></li>
+          </ul>
+        </li>
+        <li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</a></li>
+        <li><a class="nav-link" href="sorun-giderme.html">14–16. Sorun Giderme, Sözlük ve Kaynaklar</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <div class="content-inner">
+        <h1>Kullanıcı Varsayılanları, Kayıt Defteri ve Hazır Uygulamalar</h1>
+
+        <h2 id="kayit-defteri">9. Kullanıcı Varsayılanları ve Kayıt Defteri</h2>
+
+        <h3>9.1 Varsayılan kullanıcı profili</h3>
+        <ul>
+          <li><strong>Konum:</strong> <code>C:\Users\Default\NTUSER.DAT</code>. Çevrimdışı imajda <code>&lt;bağlama dizini&gt;\Users\Default\NTUSER.DAT</code>.</li>
+          <li><strong>Durum:</strong> Varsayılan kullanıcı kovanı Kayıt Defteri'nde varsayılan olarak yüklü değildir. Düzenlemek için <code>reg load</code> ile yüklenmeli, işlem bitince <code>reg unload</code> ile boşaltılmalıdır.</li>
+          <li><strong>Kapsam:</strong> Yalnızca yeni oluşturulan kullanıcı profillerini etkiler.</li>
+          <li><strong>Microsoft yöntemi:</strong> Belgelenmiş yaklaşım, referans makinede profili hazırlayıp <code>CopyProfile</code> ile varsayılan profile kopyalamaktır.</li>
+          <li><strong>Varsayılan uygulamalar:</strong> Windows, kullanıcının ilk oturumunda varsayılan uygulama ilişkilendirmelerini <code>oemdefaultassociations.xml</code> dosyasından yükleyebilir (Microsoft belgesi).</li>
+        </ul>
+
+        <h3 id="referans-anahtarlar">9.2 Referans kayıt defteri anahtarları</h3>
+        <p>Bu tablo başvuru amaçlıdır. Her değer hedef sürümde sanal makinede doğrulanmalıdır.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ayar</th>
+                <th>Anahtar</th>
+                <th>Değer ve anlamı</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Masaüstü simgesi: Bu Bilgisayar</td>
+                <td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel</code> → <code>{20D04FE0-3AEA-1069-A2D8-08002B30309D}</code></td>
+                <td><code>0</code> = görünür</td>
+              </tr>
+              <tr>
+                <td>Masaüstü simgesi: Geri Dönüşüm Kutusu</td>
+                <td>Aynı anahtar → <code>{645FF040-5081-101B-9F08-00AA002F954E}</code></td>
+                <td><code>0</code> = görünür</td>
+              </tr>
+              <tr>
+                <td>Koyu mod: uygulamalar</td>
+                <td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize</code> → <code>AppsUseLightTheme</code></td>
+                <td><code>0</code> = koyu</td>
+              </tr>
+              <tr>
+                <td>Koyu mod: sistem</td>
+                <td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize</code> → <code>SystemUsesLightTheme</code></td>
+                <td><code>0</code> = koyu</td>
+              </tr>
+              <tr>
+                <td>Görev çubuğu: Widgets</td>
+                <td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced</code> → <code>TaskbarDa</code></td>
+                <td><code>0</code> = gizli</td>
+              </tr>
+              <tr>
+                <td>Görev çubuğu: Sohbet</td>
+                <td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced</code> → <code>TaskbarMn</code></td>
+                <td><code>0</code> = gizli</td>
+              </tr>
+              <tr>
+                <td>Duvar kağıdı</td>
+                <td><code>HKCU\Control Panel\Desktop</code> → <code>Wallpaper</code>, <code>WallpaperStyle</code>, <code>TileWallpaper</code></td>
+                <td>Stil: <code>0</code> ortala, <code>2</code> uzat, <code>6</code> sığdır, <code>10</code> doldur, <code>22</code> yay</td>
+              </tr>
+              <tr>
+                <td>Widgets politikası</td>
+                <td><code>HKLM\SOFTWARE\Policies\Microsoft\Dsh</code> → <code>AllowNewsAndInterests</code></td>
+                <td><code>0</code> = kapalı</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Politika anahtarları ve varsayılan davranışlar sürümler arasında değişebilir. Başvuru kaynağı olarak Microsoft'un Policy CSP ve ADMX belgeleri kullanılmalıdır.</p>
+
+        <h3 id="yukleme-bosaltma">9.3 Yükleme ve boşaltma kuralları</h3>
+        <ul>
+          <li>Yükleme: <code>reg load HKLM\&lt;geçici-ad&gt; "&lt;bağlama dizini&gt;\Users\Default\NTUSER.DAT"</code></li>
+          <li>Boşaltma: <code>reg unload HKLM\&lt;geçici-ad&gt;</code></li>
+          <li>Kovan açık kaldığında boşaltma başarısız olur. Kayıt defteri düzenleyicisi pencereleri kapatılmalıdır.</li>
+          <li>Geçici ad benzersiz olmalı ve mevcut bir kovanla çakışmamalıdır.</li>
+        </ul>
+
+        <h2 id="hazir-uygulamalar">10. Hazır (Provisioned) Uygulamalar</h2>
+
+        <h3>10.1 Kavram</h3>
+        <ul>
+          <li>Hazır uygulamalar, Windows imajına eklenmiş AppX/MSIX paketleridir. Yeni kullanıcı hesapları oluşturulduğunda bu paketler kullanıcıya otomatik olarak yüklenir.</li>
+          <li>Hazır paket kaldırma yalnızca yeni kullanıcılar için etkilidir. Mevcut kullanıcılardaki paketler kaldırılmaz. Kullanıcı bazlı kaldırma için <code>Remove-AppxPackage</code> kullanılır.</li>
+        </ul>
+
+        <h3 id="komut-modeli">10.2 Komut modeli</h3>
+        <pre><code># Çevrimdışı imajdaki hazır paketleri listele
+Get-AppxProvisionedPackage -Path &lt;BAĞLAMA_DİZİNİ&gt; | Select-Object DisplayName, PackageName
+
+# Tam paket adıyla kaldır
+Remove-AppxProvisionedPackage -Path &lt;BAĞLAMA_DİZİNİ&gt; -PackageName &lt;TAM_PAKET_ADI&gt;</code></pre>
+        <p>Ek parametreler: <code>-LogPath</code> (varsayılan <code>%WINDIR%\Logs\Dism\dism.log</code>) ve <code>-ScratchDirectory</code> (yerel bir dizin olmalıdır).</p>
+
+        <h3>10.3 Operasyonel ilkeler</h3>
+        <ul>
+          <li>Silmeden önce listeleme yapın ve her paketin sistem bağımlılığını değerlendirin.</li>
+          <li>Joker karakterli eşleşmeler (<code>*Ad*</code>) beklenmeyen paketleri de kapsayabilir. Tam <code>PackageName</code> değeriyle çalışın.</li>
+          <li>Paket adları sürüme ve dile göre değişebilir. Değerler her hedef imajda yeniden alınmalıdır.</li>
+          <li>Sistem bileşeni niteliğindeki paketler (kabuk, Store altyapısı vb.) kaldırıldığında beklenmeyen davranışlar görülebilir. Her değişiklik sanal makinede test edilmelidir.</li>
+        </ul>
+
+        <h3 id="edge-webview2">10.4 Microsoft Edge ve WebView2 Runtime</h3>
+        <ul>
+          <li>Microsoft, Microsoft Edge'i Windows'un temel bileşeni olarak tanımlar ve kaldırılamayacağını belirtir.</li>
+          <li>WebView2 Runtime, Teams ve Office gibi birçok uygulama tarafından kullanılır.</li>
+          <li>Kurulum sırasında Edge veya WebView2 dosyalarının ya da hizmetlerinin silinmesi, kurulum sonrasında kararsızlığa ve uygulama hatalarına yol açabilir. Bu nedenle bu belge Edge veya WebView2 kaldırma yöntemi içermez.</li>
+        </ul>
+
+        <nav class="pager" aria-label="Sayfa gezintisi">
+          <a class="pager-link prev" href="iso-ve-otomasyon.html">
+            <span class="pager-label">← Önceki</span>
+            <span class="pager-title">7–8. Önyükleme, ISO ve Otomasyon</span>
+          </a>
+          <a class="pager-link next" href="dogrulama-ve-lisans.html">
+            <span class="pager-label">Sonraki →</span>
+            <span class="pager-title">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</span>
+          </a>
+        </nav>
+
+        <footer class="site-footer">
+          Belge sürümü: 2.0 · Son gözden geçirme: 22 Kasım 2026
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>
