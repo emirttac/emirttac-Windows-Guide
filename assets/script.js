@@ -46,6 +46,185 @@
     header.insertBefore(github, header.firstChild);
   }
 
+  var pageLinks = document.querySelectorAll(".nav-list > li > a.nav-link");
+  if (header && pageLinks.length && typeof HTMLDialogElement !== "undefined") {
+    var labels = isEnglish ? {
+      search: "Search", placeholder: "Search the guide...", shortcut: "Keyboard shortcut: Ctrl+K",
+      loading: "Loading search index...", prompt: "Type to search the guide.",
+      empty: "No results found.", error: "Search could not load the guide. Close and reopen to retry.",
+      count: "results", shown: "Showing the first 30 results.", close: "Close search"
+    } : {
+      search: "Ara", placeholder: "Rehberde ara...", shortcut: "Klavye kısayolu: Ctrl+K",
+      loading: "Arama dizini yükleniyor...", prompt: "Rehberde aramak için yazın.",
+      empty: "Sonuç bulunamadı.", error: "Rehber yüklenemedi. Yeniden denemek için aramayı kapatıp açın.",
+      count: "sonuç", shown: "İlk 30 sonuç gösteriliyor.", close: "Aramayı kapat"
+    };
+    var searchButton = document.createElement("button");
+    searchButton.type = "button";
+    searchButton.className = "search-trigger";
+    searchButton.setAttribute("aria-label", labels.search + " — " + labels.shortcut);
+    searchButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span></span><kbd>Ctrl</kbd><kbd>K</kbd>';
+    searchButton.querySelector("span").textContent = labels.search + "...";
+    header.insertBefore(searchButton, header.firstChild);
+
+    var dialog = document.createElement("dialog");
+    dialog.className = "search-dialog";
+    dialog.setAttribute("aria-label", labels.search);
+    dialog.innerHTML = '<div class="search-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input type="search" autocomplete="off"><button type="button" class="search-close">Esc</button></div><p class="search-status" role="status" aria-live="polite"></p><div class="search-results"></div>';
+    document.body.appendChild(dialog);
+    var searchInput = dialog.querySelector("input");
+    searchInput.placeholder = labels.placeholder;
+    searchInput.setAttribute("aria-label", labels.search);
+    var closeButton = dialog.querySelector(".search-close");
+    closeButton.setAttribute("aria-label", labels.close);
+    var status = dialog.querySelector(".search-status");
+    var results = dialog.querySelector(".search-results");
+    var indexPromise;
+    var searchIndex;
+    var loadFailed = false;
+
+    function normalize(text) {
+      return text.toLocaleLowerCase(isEnglish ? "en" : "tr").replace(/ı/g, "i");
+    }
+
+    function indexPage(link) {
+      return fetch(link.href).then(function (response) {
+        if (!response.ok) throw new Error("HTTP " + response.status + ": " + link.href);
+        return response.text();
+      }).then(function (html) {
+        var page = new DOMParser().parseFromString(html, "text/html");
+        var body = page.querySelector(".content-inner");
+        if (!body) throw new Error("Missing content: " + link.href);
+        var sections = [];
+        var current;
+        Array.prototype.forEach.call(body.children, function (element) {
+          if (/^H[123]$/.test(element.tagName)) {
+            current = { title: element.textContent.trim(), page: link.textContent.trim(), url: link.href + (element.id ? "#" + encodeURIComponent(element.id) : ""), text: "" };
+            sections.push(current);
+          } else if (current && !element.matches(".pager, .site-footer, hr")) {
+            current.text += " " + element.textContent.replace(/\s+/g, " ").trim();
+          }
+        });
+        return sections;
+      });
+    }
+
+    function highlighted(parent, text, query) {
+      var index = normalize(text).indexOf(normalize(query));
+      if (index < 0) {
+        parent.textContent = text;
+        return;
+      }
+      parent.appendChild(document.createTextNode(text.slice(0, index)));
+      var mark = document.createElement("mark");
+      mark.textContent = text.slice(index, index + query.length);
+      parent.appendChild(mark);
+      parent.appendChild(document.createTextNode(text.slice(index + query.length)));
+    }
+
+    function renderSearch() {
+      var query = searchInput.value.trim();
+      results.replaceChildren();
+      if (loadFailed) {
+        status.textContent = labels.error;
+        return;
+      }
+      if (!searchIndex) {
+        status.textContent = labels.loading;
+        return;
+      }
+      if (!query) {
+        status.textContent = labels.prompt;
+        return;
+      }
+      var needle = normalize(query);
+      var matches = searchIndex.filter(function (section) {
+        return normalize(section.title + " " + section.text).indexOf(needle) !== -1;
+      });
+      matches.sort(function (a, b) {
+        return Number(normalize(b.title).indexOf(needle) !== -1) - Number(normalize(a.title).indexOf(needle) !== -1);
+      });
+      status.textContent = matches.length ? matches.length + " " + labels.count + (matches.length > 30 ? " · " + labels.shown : "") : labels.empty;
+      matches.slice(0, 30).forEach(function (section) {
+        var item = document.createElement("a");
+        item.className = "search-result";
+        item.href = section.url;
+        var page = document.createElement("span");
+        page.className = "search-result-page";
+        page.textContent = section.page;
+        var title = document.createElement("strong");
+        highlighted(title, section.title, query);
+        item.appendChild(page);
+        item.appendChild(title);
+        var text = section.text.trim();
+        if (text) {
+          var match = normalize(text).indexOf(needle);
+          var start = match < 0 ? 0 : Math.max(0, match - 45);
+          var end = match < 0 ? 150 : Math.min(text.length, match + query.length + 100);
+          var snippet = document.createElement("span");
+          snippet.className = "search-result-snippet";
+          highlighted(snippet, (start ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : ""), query);
+          item.appendChild(snippet);
+        }
+        results.appendChild(item);
+      });
+    }
+
+    function openSearch() {
+      if (dialog.open) {
+        searchInput.focus();
+        return;
+      }
+      dialog.showModal();
+      searchInput.focus();
+      loadFailed = false;
+      if (!indexPromise) {
+        indexPromise = Promise.all(Array.prototype.map.call(pageLinks, indexPage)).then(function (pages) {
+          searchIndex = [].concat.apply([], pages);
+          renderSearch();
+        }).catch(function (error) {
+          console.error("Search index could not be loaded:", error);
+          indexPromise = null;
+          loadFailed = true;
+          renderSearch();
+        });
+      }
+      renderSearch();
+    }
+    searchButton.addEventListener("click", openSearch);
+    closeButton.addEventListener("click", function () { dialog.close(); });
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) dialog.close();
+    });
+    results.addEventListener("click", function (event) {
+      if (event.target.closest("a")) dialog.close();
+    });
+    searchInput.addEventListener("input", renderSearch);
+    dialog.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" && event.target === searchInput) {
+        var first = results.querySelector("a");
+        if (first) {
+          event.preventDefault();
+          first.click();
+        }
+        return;
+      }
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      var links = Array.prototype.slice.call(results.querySelectorAll("a"));
+      if (!links.length) return;
+      event.preventDefault();
+      var current = links.indexOf(document.activeElement);
+      var next = event.key === "ArrowDown" ? Math.min(current + 1, links.length - 1) : current <= 0 ? -1 : current - 1;
+      (next < 0 ? searchInput : links[next]).focus();
+    });
+    document.addEventListener("keydown", function (event) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        openSearch();
+      }
+    });
+  }
+
   var menuBtn = document.getElementById("menu-toggle");
   var sidebar = document.getElementById("sidebar");
   if (menuBtn && sidebar) {

@@ -10,6 +10,8 @@ Microsoft araçlarıyla resmi Windows 11 kurulum medyasını inceleme, çevrimd�
 - [English web guide](https://emirttac.github.io/emirttac-Windows-Guide/en/index.html)
 - [GitHub deposu](https://github.com/emirttac/emirttac-Windows-Guide)
 
+Web rehberindeki arama, seçili dilin tüm bölümlerinde çalışır; üstteki arama düğmesi veya Ctrl+K (macOS'ta Command+K) ile açılabilir. Arama, sayfaları HTTP üzerinden yükler; yerel denemelerde dosyayı doğrudan açmak yerine bir yerel web sunucusu kullanın.
+
 ## İçerik
 
 1. Kapsam ve referans medya

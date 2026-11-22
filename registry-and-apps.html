@@ -49,7 +49,7 @@
 
         <h2 id="kayit-defteri">9. Kullanıcı Varsayılanları ve Kayıt Defteri</h2>
 
-        <h3>9.1 Varsayılan kullanıcı profili</h3>
+        <h3 id="bolum-9-1">9.1 Varsayılan kullanıcı profili</h3>
         <ul>
           <li><strong>Konum:</strong> <code>C:\Users\Default\NTUSER.DAT</code>. Çevrimdışı imajda <code>&lt;bağlama dizini&gt;\Users\Default\NTUSER.DAT</code>.</li>
           <li><strong>Durum:</strong> Varsayılan kullanıcı kovanı Kayıt Defteri'nde varsayılan olarak yüklü değildir. Düzenlemek için <code>reg load</code> ile yüklenmeli, işlem bitince <code>reg unload</code> ile boşaltılmalıdır.</li>
@@ -125,7 +125,7 @@
 
         <h2 id="hazir-uygulamalar">10. Hazır (Provisioned) Uygulamalar</h2>
 
-        <h3>10.1 Kavram</h3>
+        <h3 id="bolum-10-1">10.1 Kavram</h3>
         <ul>
           <li>Hazır uygulamalar, Windows imajına eklenmiş AppX/MSIX paketleridir. Yeni kullanıcı hesapları oluşturulduğunda bu paketler kullanıcıya otomatik olarak yüklenir.</li>
           <li>Hazır paket kaldırma yalnızca yeni kullanıcılar için etkilidir. Mevcut kullanıcılardaki paketler kaldırılmaz. Kullanıcı bazlı kaldırma için <code>Remove-AppxPackage</code> kullanılır.</li>
@@ -139,7 +139,7 @@ Get-AppxProvisionedPackage -Path &lt;BAĞLAMA_DİZİNİ&gt; | Select-Object Disp
 Remove-AppxProvisionedPackage -Path &lt;BAĞLAMA_DİZİNİ&gt; -PackageName &lt;TAM_PAKET_ADI&gt;</code></pre>
         <p>Ek parametreler: <code>-LogPath</code> (varsayılan <code>%WINDIR%\Logs\Dism\dism.log</code>) ve <code>-ScratchDirectory</code> (yerel bir dizin olmalıdır).</p>
 
-        <h3>10.3 Operasyonel ilkeler</h3>
+        <h3 id="bolum-10-3">10.3 Operasyonel ilkeler</h3>
         <ul>
           <li>Silmeden önce listeleme yapın ve her paketin sistem bağımlılığını değerlendirin.</li>
           <li>Joker karakterli eşleşmeler (<code>*Ad*</code>) beklenmeyen paketleri de kapsayabilir. Tam <code>PackageName</code> değeriyle çalışın.</li>

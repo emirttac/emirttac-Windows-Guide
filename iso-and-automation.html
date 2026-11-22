@@ -50,7 +50,7 @@
 
         <h2 id="iso-uretimi">7. Önyükleme ve ISO Üretimi</h2>
 
-        <h3>7.1 Önyükleme modeli</h3>
+        <h3 id="bolum-7-1">7.1 Önyükleme modeli</h3>
         <ul>
           <li><strong>BIOS:</strong> El Torito girdisi, platform kimliği <code>0x00</code>, dosya <code>boot\etfsboot.com</code>.</li>
           <li><strong>UEFI:</strong> El Torito girdisi, platform kimliği <code>0xEF</code>, dosya <code>efi\microsoft\boot\efisys.bin</code>.</li>
@@ -117,7 +117,7 @@
           </li>
         </ul>
 
-        <h3>7.4 ISO doğrulama</h3>
+        <h3 id="bolum-7-4">7.4 ISO doğrulama</h3>
         <ul>
           <li>Üretilen ISO'nun SHA-256 özetini kaydedin: <code>Get-FileHash -Algorithm SHA256 &lt;ISO&gt;</code>.</li>
           <li>Sanal makinede BIOS ve UEFI önyüklemesini ayrı ayrı test edin.</li>
@@ -153,7 +153,7 @@
           <li>Medya dışından <code>Setup /m:&lt;klasör&gt;</code> seçeneğiyle de sağlanabilir.</li>
         </ul>
 
-        <h3>8.4 Sürüme özgü davranışlar</h3>
+        <h3 id="bolum-8-4">8.4 Sürüme özgü davranışlar</h3>
         <ul>
           <li><strong>Windows 11 Home:</strong> İlk kurulumda internet bağlantısı ve Microsoft Hesabı gerektirir (resmi gereksinimler belgesi). Kurulum otomasyonu planlanırken bu davranış dikkate alınmalıdır.</li>
           <li><strong>OOBE ve hesap politikaları:</strong> Sürüme göre değişebilir. Bu rehber OOBE davranışını atlatma yöntemlerini kapsamaz.</li>
