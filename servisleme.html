@@ -146,7 +146,7 @@
         <p>Bu örnek yalnızca imajı inceleyip bağlar; özgün medyayı değiştirmez. Önce kurulum medyasını ayrı bir çalışma klasörüne kopyalayın, özgün <code>install.wim</code> dosyasının yedeğini koruyun ve yeterli boş alan bulunduğunu doğrulayın. <code>&lt;BAĞLAMA&gt;</code> boş, korumalı olmayan bir klasör olmalıdır. Yönetici olarak açılmış Komut İstemi'nde yolları ve indeksi kendi medyanızın <code>/Get-ImageInfo</code> çıktısına göre değiştirin:</p>
         <pre><code>dism /Get-ImageInfo /ImageFile:"&lt;ÇALIŞMA&gt;\sources\install.wim"
 dism /Mount-Image /ImageFile:"&lt;ÇALIŞMA&gt;\sources\install.wim" /Index:&lt;İNDEKS&gt; /MountDir:"&lt;BAĞLAMA&gt;"
-        dism /Get-MountedImageInfo</code></pre>
+dism /Get-MountedImageInfo</code></pre>
         <p>Gerçek bir değişiklik için yalnızca mimari ve yapı numarası eşleşen, resmi Microsoft kaynağından alınmış bir paket kullanın; paket bağımlılıklarına ve kurulum sırasına uyun. Aşağıdaki örnek isteğe bağlıdır ve bağlanmış imajda değişiklik yapar:</p>
         <pre><code>dism /Image:"&lt;BAĞLAMA&gt;" /Add-Package /PackagePath:"&lt;EŞLEŞEN_MICROSOFT_PAKETİ&gt;.msu"
 dism /Image:"&lt;BAĞLAMA&gt;" /Get-Packages /Format:Table</code></pre>
