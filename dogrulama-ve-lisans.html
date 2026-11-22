@@ -53,6 +53,7 @@
           <li><strong>vTPM:</strong> Windows 11 TPM 2.0 gerektirir. Generation 2 sanal makineye vTPM eklenerek BitLocker ve TPM tabanlı özellikler sınanabilir.</li>
           <li><strong>Donanım referansı (Microsoft resmi gereksinimleri):</strong> 64-bit, en az 2 çekirdekli 1 GHz+ işlemci; 4 GB+ RAM; 64 GB+ depolama; DirectX 12 ve WDDM 2.0 sürücü; UEFI Secure Boot destekli firmware; TPM 2.0; 720p (9") ekran.</li>
         </ul>
+        <p><strong>Örnek test akışı:</strong> Secure Boot ve vTPM etkin, Generation 2 bir sanal makine oluşturun; ISO'yu bağlayıp kurulumu sanal diske yapın. Kurulumdan sonra sürüm/indeksi, Setup günlüklerini, hazır ve kurulu paketleri, yeni kullanıcı varsayılanlarını ve Windows Update'i kontrol edin. Tekrar kullanılabilir bir test başlangıç noktası için sanal makine kontrol noktası alın. Legacy BIOS uyumluluğu gerekiyorsa önyüklemeyi ayrı test edin; BIOS sanal makinesindeki kurulum Windows 11'in destekli donanım yapılandırmasını doğrulamaz.</p>
 
         <h3 id="kontrol-listesi">11.2 Kontrol listesi</h3>
         <ul>
@@ -62,7 +63,7 @@
           <li>Kurulan sürüm ve indeks eşleşiyor: <code>DISM /Online /Get-CurrentEdition</code></li>
           <li><code>C:\Windows\Panther\UnattendGC\setupact.log</code> içinde betik eylemleri kayıtlı</li>
           <li>Yeni yerel kullanıcıda varsayılan profil ayarları kontrol edildi</li>
-          <li>Hazır paket durumu <code>Get-AppxPackage -AllUsers</code> ile doğrulandı</li>
+          <li>Çevrimiçi imajdaki hazır paketler <code>Get-AppxProvisionedPackage -Online</code> ile, mevcut kullanıcı profillerinde kurulu paketler ayrıca <code>Get-AppxPackage -AllUsers</code> ile doğrulandı</li>
           <li>Secure Boot durumu: <code>Confirm-SecureBootUEFI</code></li>
           <li>Cihaz şifreleme durumu: <code>manage-bde -status</code></li>
           <li>Windows Update durumu ve yapı numarası kontrol edildi</li>

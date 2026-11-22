@@ -111,7 +111,7 @@
           <li>USB medya oluşturulurken FAT32'nin 4 GiB dosya sınırı nedeniyle iki yol vardır:
             <ul>
               <li><strong>NTFS:</strong> Veri bölümü NTFS olarak biçimlendirilir. UEFI önyüklemesi için FAT32 önyükleme bölümü gerekir (çift bölümlü düzen).</li>
-              <li><strong>Bölme:</strong> <code>dism /Split-Image</code> ile <code>install.wim</code>, <code>.swm</code> parçalarına ayrılır. Parça boyutu FAT32 sınırının altında seçilmelidir (ör. 4000 MB). Setup, bölünmüş medyadan <code>setup.exe /InstallFrom:install.swm</code> ile çalışabilir.</li>
+              <li><strong>Bölme:</strong> <code>dism /Split-Image</code> ile <code>install.wim</code>, FAT32 sınırının altındaki <code>.swm</code> parçalarına ayrılır (ör. 4000 MB). Tüm parçaları kurulum medyasındaki <code>sources</code> klasörüne kopyalayıp Windows Setup'ı normal şekilde başlatın. <code>/InstallFrom</code> kullanılıyorsa ilk parçaya giden tam yol belirtilmelidir.</li>
             </ul>
           </li>
         </ul>
@@ -129,7 +129,7 @@
         <ul>
           <li>Windows Setup, yapılandırma geçişlerini (configuration passes) sırayla işler. Başlıca geçişler: <code>windowsPE</code>, <code>offlineServicing</code>, <code>generalize</code>, <code>specialize</code>, <code>auditSystem</code>, <code>auditUser</code> ve <code>oobeSystem</code>.</li>
           <li><code>offlineServicing</code> geçişi, DISM ile çevrimdışı imaja uygulanabilir: <code>dism /Image:&lt;dizin&gt; /Apply-Unattend:&lt;dosya&gt;</code>. Bağımlılığı olan paket işlemlerinde doğru sıra bu yolla güvenle yönetilir.</li>
-          <li>Oturum açmadan sonra çalışacak komutlar <code>FirstLogonCommands</code> ile tanımlanır. Bu komutlar bir sonraki açılışta tetiklenir. Audit modunda tetiklenmemesi için <code>Microsoft-Windows-Deployment\Reseal\Mode = Audit</code> ayarı kullanılır.</li>
+          <li>İlk kullanıcı oturum açışında çalışacak komutlar <code>FirstLogonCommands</code> ile tanımlanır. <code>Order</code> değerleri komutları ardışık tamamlanmaya zorlamaz; komutlar eşzamanlı başlatılabilir. Sıralamaya bağlı işler tek bir betik içinde sıraya konmalıdır. Audit modunda çalıştırmayı önlemek için <code>Microsoft-Windows-Deployment\Reseal\Mode = Audit</code> ayarı kullanılır.</li>
           <li>Microsoft, uzun betiklerin kullanıcının masaüstüne ulaşmasını geciktirebileceği konusunda uyarır. Betikler kısa tutulmalıdır.</li>
         </ul>
 

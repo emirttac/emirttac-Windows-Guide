@@ -101,8 +101,25 @@
 <li><strong>Persist:</strong> <code>/Commit-Image</code> (the image remains mounted) or <code>/Unmount-Image /Commit</code>.</li>
 <li><strong>Discard:</strong> <code>/Unmount-Image /Discard</code> deletes all changes. Use it only when intentionally reverting.</li>
 <li><strong>Optimize (optional):</strong> <code>/Cleanup-Image /StartComponentCleanup /ResetBase</code>, followed by <code>/Export-Image</code>. <code>/ResetBase</code> permanently prevents removal of previous components.</li>
-<li><strong>Package:</strong> Place the modified <code>install.wim</code> in the ISO or USB root directory.</li>
+<li><strong>Package:</strong> Replace <code>sources\install.wim</code> on the installation media with the modified file.</li>
 </ol>
+<h3 id="ornek-akis">6.1.1 Safe example workflow</h3>
+<p>This example only inspects and mounts an image; it does not modify the original media. First copy the installation media to a separate working folder, keep a backup of the original <code>install.wim</code>, and verify that enough free disk space is available. <code>&lt;MOUNT&gt;</code> must be an empty folder outside protected locations. In an elevated Command Prompt, replace the paths and index with values confirmed by <code>/Get-ImageInfo</code> for your media:</p>
+<pre><code>dism /Get-ImageInfo /ImageFile:&quot;&lt;WORK&gt;\sources\install.wim&quot;
+dism /Mount-Image /ImageFile:&quot;&lt;WORK&gt;\sources\install.wim&quot; /Index:&lt;INDEX&gt; /MountDir:&quot;&lt;MOUNT&gt;&quot;
+dism /Get-MountedImageInfo
+</code></pre>
+<p>For an actual change, use only an official Microsoft package that matches the image's architecture and build, and follow package dependencies and installation order. The following optional example modifies the mounted image:</p>
+<pre><code>dism /Image:&quot;&lt;MOUNT&gt;&quot; /Add-Package /PackagePath:&quot;&lt;MATCHING_MICROSOFT_PACKAGE&gt;.msu&quot;
+dism /Image:&quot;&lt;MOUNT&gt;&quot; /Get-Packages /Format:Table
+</code></pre>
+<p>After verifying changes, save them with:</p>
+<pre><code>dism /Unmount-Image /MountDir:&quot;&lt;MOUNT&gt;&quot; /Commit
+</code></pre>
+<p>To discard changes, or to unmount after inspection only, use this instead:</p>
+<pre><code>dism /Unmount-Image /MountDir:&quot;&lt;MOUNT&gt;&quot; /Discard
+</code></pre>
+<p>Run only one unmount command. Aside from the optional package installation, this workflow makes no changes. If DISM fails, inspect its log before deleting the source image.</p>
 <h3 id="servisleme-alanlari">6.2 Servicing areas</h3>
 <div class="table-wrap"><table>
 <thead>

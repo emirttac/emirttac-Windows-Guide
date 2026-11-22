@@ -25,6 +25,7 @@
 <li><strong>vTPM:</strong> Windows 11 requires TPM 2.0. Adding a vTPM to a Generation 2 virtual machine allows BitLocker and TPM-based features to be tested.</li>
 <li><strong>Hardware reference (official Microsoft requirements):</strong> 64-bit, 1 GHz+ processor with at least 2 cores; 4 GB+ RAM; 64 GB+ storage; DirectX 12 and a WDDM 2.0 driver; UEFI firmware with Secure Boot support; TPM 2.0; 720p (9") display.</li>
 </ul>
+<p><strong>Example test workflow:</strong> Create a Generation 2 virtual machine with Secure Boot and vTPM enabled, attach the ISO, and install to a virtual disk. After setup, check the edition/build, Setup logs, provisioned and installed packages, defaults for a new user, and Windows Update. Take a VM checkpoint to preserve a reusable test baseline. If legacy BIOS compatibility is required, test boot separately; an installation in a BIOS VM does not validate a supported Windows 11 hardware configuration.</p>
 <h3 id="kontrol-listesi">11.2 Checklist</h3>
 <ul>
 <li>☐ ISO SHA-256 hash recorded</li>
@@ -33,7 +34,7 @@
 <li>☐ Installed edition matches the index: <code>DISM /Online /Get-CurrentEdition</code></li>
 <li>☐ Script actions recorded in <code>C:\Windows\Panther\UnattendGC\setupact.log</code></li>
 <li>☐ Default profile settings checked with a new local user</li>
-<li>☐ Provisioned package status verified with <code>Get-AppxPackage -AllUsers</code></li>
+<li>☐ Provisioned packages in the online image verified with <code>Get-AppxProvisionedPackage -Online</code>; packages installed for existing user profiles checked separately with <code>Get-AppxPackage -AllUsers</code></li>
 <li>☐ Secure Boot status: <code>Confirm-SecureBootUEFI</code></li>
 <li>☐ Device encryption status: <code>manage-bde -status</code></li>
 <li>☐ Windows Update status and build number checked</li>

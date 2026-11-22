@@ -75,7 +75,7 @@
 <li><code>install.wim</code> (7.26 GiB) exceeds the 4 GiB file limit of classic ISO 9660. Therefore, <strong>UDF is required</strong> for media containing <code>install.wim</code> (<code>-u1</code> or <code>-u2</code>).</li>
 <li>When creating USB media, FAT32's 4 GiB file limit leaves two options:</li>
 <li><strong>NTFS:</strong> Format the data partition as NTFS. UEFI boot requires a FAT32 boot partition (a dual-partition layout).</li>
-<li><strong>Splitting:</strong> Use <code>dism /Split-Image</code> to split <code>install.wim</code> into <code>.swm</code> parts. Select a part size below the FAT32 limit (e.g., 4000 MB). Setup can run from split media using <code>setup.exe /InstallFrom:install.swm</code>.</li>
+<li><strong>Splitting:</strong> Use <code>dism /Split-Image</code> to split <code>install.wim</code> into <code>.swm</code> parts below the FAT32 limit (e.g., 4000 MB). Copy all parts into the installation media's <code>sources</code> folder and start Windows Setup normally. If using <code>/InstallFrom</code>, specify the full path to the first part.</li>
 </ul>
 <h3 id="bolum-7-4">7.4 ISO validation</h3>
 <ul>
@@ -89,7 +89,7 @@
 <ul>
 <li>Windows Setup processes configuration passes in sequence. The main passes are <code>windowsPE</code>, <code>offlineServicing</code>, <code>generalize</code>, <code>specialize</code>, <code>auditSystem</code>, <code>auditUser</code>, and <code>oobeSystem</code>.</li>
 <li>The <code>offlineServicing</code> pass can be applied to an offline image using DISM: <code>dism /Image:&lt;directory&gt; /Apply-Unattend:&lt;file&gt;</code>. This safely manages the correct order for package operations with dependencies.</li>
-<li>Commands to run after sign-in are defined using <code>FirstLogonCommands</code>. These commands are triggered on the next boot. To prevent them from triggering in audit mode, use <code>Microsoft-Windows-Deployment\Reseal\Mode = Audit</code>.</li>
+<li>Commands to run at the first user sign-in are defined using <code>FirstLogonCommands</code>. The <code>Order</code> values do not make commands wait for one another to finish; commands can start concurrently. Put dependent steps in one script and sequence them there. To prevent these commands from running in audit mode, use <code>Microsoft-Windows-Deployment\Reseal\Mode = Audit</code>.</li>
 <li>Microsoft warns that long-running scripts can delay the user reaching the desktop. Keep scripts short.</li>
 </ul>
 <h3 id="setupcomplete">8.2 SetupComplete.cmd</h3>

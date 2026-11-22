@@ -31,6 +31,7 @@
             <li><a href="#medya-indeksleri">5.2 Bu medyadaki indeksler</a></li>
             <li><a href="#cevrimdisi-servisleme">6. Çevrimdışı İmaj Servisleme</a></li>
             <li><a href="#yasam-dongusu">6.1 Yaşam döngüsü</a></li>
+            <li><a href="#ornek-akis">6.1.1 Güvenli örnek akış</a></li>
             <li><a href="#servisleme-alanlari">6.2 Servisleme alanları</a></li>
             <li><a href="#riskler">6.3 Risk değerlendirmesi</a></li>
             <li><a href="#kurtarma">6.4 Kurtarma komutları</a></li>
@@ -138,8 +139,22 @@
           <li><strong>Kalıcılaştırma:</strong> <code>/Commit-Image</code> (imaj bağlı kalır) veya <code>/Unmount-Image /Commit</code>.</li>
           <li><strong>Atma:</strong> <code>/Unmount-Image /Discard</code> tüm değişiklikleri siler. Yalnızca bilinçli geri dönüş için kullanılmalıdır.</li>
           <li><strong>Optimizasyon (isteğe bağlı):</strong> <code>/Cleanup-Image /StartComponentCleanup /ResetBase</code>, ardından <code>/Export-Image</code>. <code>/ResetBase</code>, önceki bileşenlerin kaldırılmasını kalıcı olarak engeller.</li>
-          <li><strong>Paketleme:</strong> Değiştirilmiş <code>install.wim</code>, ISO veya USB kök dizinine yerleştirilir.</li>
+          <li><strong>Paketleme:</strong> Değiştirilmiş <code>install.wim</code>, kurulum medyasındaki <code>sources\install.wim</code> dosyasının yerine konur.</li>
         </ol>
+
+        <h3 id="ornek-akis">6.1.1 Güvenli örnek akış</h3>
+        <p>Bu örnek yalnızca imajı inceleyip bağlar; özgün medyayı değiştirmez. Önce kurulum medyasını ayrı bir çalışma klasörüne kopyalayın, özgün <code>install.wim</code> dosyasının yedeğini koruyun ve yeterli boş alan bulunduğunu doğrulayın. <code>&lt;BAĞLAMA&gt;</code> boş, korumalı olmayan bir klasör olmalıdır. Yönetici olarak açılmış Komut İstemi'nde yolları ve indeksi kendi medyanızın <code>/Get-ImageInfo</code> çıktısına göre değiştirin:</p>
+        <pre><code>dism /Get-ImageInfo /ImageFile:"&lt;ÇALIŞMA&gt;\sources\install.wim"
+dism /Mount-Image /ImageFile:"&lt;ÇALIŞMA&gt;\sources\install.wim" /Index:&lt;İNDEKS&gt; /MountDir:"&lt;BAĞLAMA&gt;"
+        dism /Get-MountedImageInfo</code></pre>
+        <p>Gerçek bir değişiklik için yalnızca mimari ve yapı numarası eşleşen, resmi Microsoft kaynağından alınmış bir paket kullanın; paket bağımlılıklarına ve kurulum sırasına uyun. Aşağıdaki örnek isteğe bağlıdır ve bağlanmış imajda değişiklik yapar:</p>
+        <pre><code>dism /Image:"&lt;BAĞLAMA&gt;" /Add-Package /PackagePath:"&lt;EŞLEŞEN_MICROSOFT_PAKETİ&gt;.msu"
+dism /Image:"&lt;BAĞLAMA&gt;" /Get-Packages /Format:Table</code></pre>
+        <p>Değişiklikleri doğruladıktan sonra kaydetmek için:</p>
+        <pre><code>dism /Unmount-Image /MountDir:"&lt;BAĞLAMA&gt;" /Commit</code></pre>
+        <p>Değişiklikleri atmak veya yalnızca inceleme yaptıktan sonra imajı ayırmak için bunun yerine:</p>
+        <pre><code>dism /Unmount-Image /MountDir:"&lt;BAĞLAMA&gt;" /Discard</code></pre>
+        <p>Her iki ayırma komutundan yalnızca birini çalıştırın. Bu örnek paket ekleme dışında değişiklik yapmaz. DISM başarısız olursa hata günlüğünü incelemeden kaynak imajı silmeyin.</p>
 
         <h3 id="servisleme-alanlari">6.2 Servisleme alanları</h3>
         <div class="table-wrap">
