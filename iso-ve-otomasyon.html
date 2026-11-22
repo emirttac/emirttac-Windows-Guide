@@ -137,25 +137,25 @@
         <ul>
           <li><strong>Konum:</strong> <code>%WINDIR%\Setup\Scripts\SetupComplete.cmd</code></li>
           <li><strong>Yetki:</strong> Yerel Sistem (LocalSystem)</li>
-          <li><strong>Zamanlama:</strong> Microsoft belgesi iki farklı zamanlama tanımlar. "Order of operations" bölümünde kurulum sonrasında ve oturum açma ekranından önce; giriş bölümünde ise masaüstü görüntülendikten hemen sonra çalıştığı belirtilir. Betik her iki durumda da doğru sonuç üretecek şekilde yazılmalıdır (idempotent).</li>
+          <li><strong>Zamanlama:</strong> Microsoft'un belgesinde farklı zamanlamalar belirtiliyor: işlem sırası bölümüne göre oturum açma ekranından önce, giriş bölümüne göre masaüstü açıldıktan sonra çalışır. Betiği tekrar çalıştığında sorun çıkarmayacak (idempotent) biçimde yazın ve çalışmasını tek bir zamana bağlamayın.</li>
           <li><strong>Çıkış kodu:</strong> Setup, betiğin çıkış kodunu denetlemez.</li>
           <li><strong>Yeniden başlatma:</strong> Betik içinde <code>shutdown -r</code> gibi yeniden başlatma komutları kullanılmamalıdır. Kurulum durumu bozulur ve betik devam ettirilemez.</li>
           <li><strong>Etki alanı:</strong> Etki alanına katılan makinelerde, betik tamamlanana kadar etki alanı grup ilkeleri uygulanmaz.</li>
-          <li><strong>Ürün anahtarı türü:</strong> Belgeye göre OEM ürün anahtarlarıyla yapılan kurulumlarda bu özellik, Enterprise ve Server sürümleri dışında devre dışı kalabilir.</li>
+          <li><strong>Ürün anahtarı türü:</strong> OEM ürün anahtarıyla kurulan sistemlerde SetupComplete devre dışı olabilir; bu kısıt Enterprise ve Server sürümleri için geçerli değildir.</li>
           <li><strong>Günlük:</strong> <code>C:\Windows\Panther\UnattendGC\setupact.log</code></li>
         </ul>
 
         <h3 id="errorhandler">8.3 ErrorHandler.cmd</h3>
         <ul>
           <li><strong>Konum:</strong> <code>%WINDIR%\Setup\Scripts\ErrorHandler.cmd</code></li>
-          <li>Kurulum ciddi bir hatayla durduğunda çalışır. Yerel Sistem yetkisiyle senkron olarak yürütülür ve birden çok kez çağrılabilir. Bu nedenle idempotent yazılmalıdır.</li>
+          <li>Kurulum ciddi bir hatayla durduğunda çalışır. Yerel Sistem yetkisiyle senkron yürütülür ve birden çok kez çağrılabilir; betiği her çalıştırmada güvenle tekrarlanacak biçimde yazın.</li>
           <li>Medya dışından <code>Setup /m:&lt;klasör&gt;</code> seçeneğiyle de sağlanabilir.</li>
         </ul>
 
         <h3>8.4 Sürüme özgü davranışlar</h3>
         <ul>
           <li><strong>Windows 11 Home:</strong> İlk kurulumda internet bağlantısı ve Microsoft Hesabı gerektirir (resmi gereksinimler belgesi). Kurulum otomasyonu planlanırken bu davranış dikkate alınmalıdır.</li>
-          <li><strong>OOBE ve hesap politikaları:</strong> Sürüme göre değişebilir. OOBE davranışını atlatmaya yönelik yöntemler bu belgenin kapsamı dışındadır.</li>
+          <li><strong>OOBE ve hesap politikaları:</strong> Sürüme göre değişebilir. Bu rehber OOBE davranışını atlatma yöntemlerini kapsamaz.</li>
         </ul>
 
         <nav class="pager" aria-label="Sayfa gezintisi">

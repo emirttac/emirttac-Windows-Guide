@@ -48,14 +48,14 @@
         <h1>Windows Customization Guide by emirttac</h1>
 
         <blockquote>
-          <p><strong>Kapsam:</strong> Üçüncü taraf araç kullanmadan, yalnızca Microsoft araçlarıyla (DISM, Dism PowerShell modülü, <code>reg.exe</code>, <code>oscdimg</code>, Windows Setup) resmi Windows 11 kurulum medyasının incelenmesi, çevrimdışı olarak servislenmesi ve yeniden paketlenmesi için kavramsal bir referanstır.</p>
+          <p><strong>Kapsam:</strong> Bu rehber, resmi Windows 11 kurulum medyasını Microsoft araçlarıyla inceleme, çevrimdışı imajı düzenleme ve medyayı yeniden paketleme adımlarını anlatır. Kullanılan araçlar DISM, DISM PowerShell modülü, <code>reg.exe</code>, <code>oscdimg</code> ve Windows Setup'tır; üçüncü taraf imaj düzenleyiciler kapsam dışıdır.</p>
           <p><strong>Hedef:</strong> Windows 11, sürüm 26H2 (yapı 26300) ve destekli önceki sürümler<br>
-          <strong>Son doğrulama:</strong> 22 Kasım 2026</p>
-          <p>Bu belge Microsoft tarafından onaylanmış bir kılavuz değildir. Microsoft Learn belgeleriyle karşılaştırılarak hazırlanmıştır. Windows, Microsoft Corporation'ın ticari markasıdır.</p>
+          <strong>Son gözden geçirme:</strong> 22 Kasım 2026</p>
+          <p>Bu, Microsoft'un yayımladığı veya onayladığı bir kılavuz değildir. Teknik başvuru için Microsoft Learn belgeleri kullanılmıştır. Windows, Microsoft Corporation'ın ticari markasıdır.</p>
         </blockquote>
 
         <h2 id="kapsam">1. Kapsam ve Sınırlar</h2>
-        <p>Bu belge aşağıdakileri kapsar:</p>
+        <p>Rehberde şu konular yer alır:</p>
         <ul>
           <li>Kurulum medyasının yapısı ve WIM/indeks mimarisi</li>
           <li>Çevrimdışı imaj servisleme (bağlama, değiştirme, kaydetme veya atma)</li>
@@ -64,7 +64,7 @@
           <li>Doğrulama, günlükler ve sorun giderme</li>
         </ul>
 
-        <p>Kapsam dışıdır:</p>
+        <p>Rehber şu konuları kapsamaz:</p>
         <ul>
           <li>Sistem gereksinimi denetimlerinin atlatılması</li>
           <li>Windows etkinleştirme (activation) mekanizmalarının değiştirilmesi</li>
@@ -129,7 +129,7 @@
         </div>
 
         <p><strong>Güncellik notu:</strong> Bu yapı (26300.9457), 26H2 için yayımlanan en güncel kümülatif yapının (26300.10075, 2026-11-19) gerisindedir. Kurulum sonrasında Windows Update ile veya çevrimdışı servisleme ile güncellenmelidir.</p>
-        <p><strong>Doğrulama kapsamı:</strong> Bu belgedeki gözlemler; WIM XML meta verisinin ayrıştırılmasından, dosya varlığı ve boyut kontrollerinden ve winget paket meta verisinden alınmıştır. DISM bağlama, kaydetme ve ISO üretimi yönetici yetkisi gerektirdiğinden çalıştırılmamıştır. İlgili bölümler Microsoft Learn belgeleriyle eşleştirilmiştir.</p>
+        <p><strong>Bu medya üzerinde yapılan kontroller:</strong> WIM XML meta verisi, dosya varlığı ve boyutları ile winget paket bilgisi incelendi. Bu incelemede DISM ile imaj bağlama/kaydetme ve ISO üretimi çalıştırılmadı. Bu işlemleri kendi hedef medyanızda, önce bir sanal makinede test edin.</p>
 
         <nav class="pager" aria-label="Sayfa gezintisi">
           <a class="pager-link next" href="medya-ve-araclar.html">

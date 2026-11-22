@@ -53,12 +53,12 @@
           <li><strong>Konum:</strong> <code>C:\Users\Default\NTUSER.DAT</code>. Çevrimdışı imajda <code>&lt;bağlama dizini&gt;\Users\Default\NTUSER.DAT</code>.</li>
           <li><strong>Durum:</strong> Varsayılan kullanıcı kovanı Kayıt Defteri'nde varsayılan olarak yüklü değildir. Düzenlemek için <code>reg load</code> ile yüklenmeli, işlem bitince <code>reg unload</code> ile boşaltılmalıdır.</li>
           <li><strong>Kapsam:</strong> Yalnızca yeni oluşturulan kullanıcı profillerini etkiler.</li>
-          <li><strong>Microsoft yöntemi:</strong> Belgelenmiş yaklaşım, referans makinede profili hazırlayıp <code>CopyProfile</code> ile varsayılan profile kopyalamaktır.</li>
+          <li><strong>Microsoft yöntemi:</strong> Microsoft, profili bir referans makinede hazırlayıp <code>CopyProfile</code> ile varsayılan profile kopyalamayı belgeliyor.</li>
           <li><strong>Varsayılan uygulamalar:</strong> Windows, kullanıcının ilk oturumunda varsayılan uygulama ilişkilendirmelerini <code>oemdefaultassociations.xml</code> dosyasından yükleyebilir (Microsoft belgesi).</li>
         </ul>
 
         <h3 id="referans-anahtarlar">9.2 Referans kayıt defteri anahtarları</h3>
-        <p>Bu tablo başvuru amaçlıdır. Her değer hedef sürümde sanal makinede doğrulanmalıdır.</p>
+        <p>Kayıt defteri yolları ve değerleri Windows sürümüne göre değişebilir. Değişikliği dağıtmadan önce hedef sürümde bir sanal makinede doğrulayın.</p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -150,7 +150,7 @@ Remove-AppxProvisionedPackage -Path &lt;BAĞLAMA_DİZİNİ&gt; -PackageName &lt;
         <ul>
           <li>Microsoft, Microsoft Edge'i Windows'un temel bileşeni olarak tanımlar ve kaldırılamayacağını belirtir.</li>
           <li>WebView2 Runtime, Teams ve Office gibi birçok uygulama tarafından kullanılır.</li>
-          <li>Kurulum sırasında Edge veya WebView2 dosyalarının ya da hizmetlerinin silinmesi, kurulum sonrasında kararsızlığa ve uygulama hatalarına yol açabilir. Bu nedenle bu belge Edge veya WebView2 kaldırma yöntemi içermez.</li>
+          <li>Edge veya WebView2 dosyalarını ve hizmetlerini silmek Windows'u ve bunlara bağlı uygulamaları bozabilir. Bu rehberde bunları kaldırma adımları yer almıyor.</li>
         </ul>
 
         <nav class="pager" aria-label="Sayfa gezintisi">

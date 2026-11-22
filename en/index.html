@@ -18,14 +18,14 @@
       <div class="content-inner">
         <h1>Windows Customization Guide by emirttac</h1>
 <blockquote>
-<p><strong>Scope:</strong> A conceptual reference for inspecting, servicing offline, and repackaging official Windows 11 installation media using only Microsoft tools (DISM, the Dism PowerShell module, <code>reg.exe</code>, <code>oscdimg</code>, and Windows Setup), without third-party tools.</p>
+<p><strong>Scope:</strong> This guide covers inspecting official Windows 11 installation media, servicing its images offline, and repackaging the media with Microsoft tools: DISM, the DISM PowerShell module, <code>reg.exe</code>, <code>oscdimg</code>, and Windows Setup. Third-party image editors are outside its scope.</p>
 <p><strong>Target:</strong> Windows 11, version 26H2 (build 26300), and supported earlier versions
-<strong>Last verified:</strong> November 22, 2026</p>
-<p>This is not a Microsoft-endorsed guide. It was prepared with reference to Microsoft Learn documentation. Windows is a trademark of Microsoft Corporation.</p>
+<strong>Last reviewed:</strong> November 22, 2026</p>
+<p>This is an independent guide, not a Microsoft publication or endorsement. Microsoft Learn is the primary technical reference. Windows is a trademark of Microsoft Corporation.</p>
 </blockquote>
 <hr />
 <h2 id="kapsam">1. Scope and Limitations</h2>
-<p>This document covers:</p>
+<p>The guide covers:</p>
 <ul>
 <li>Installation media structure and WIM/index architecture</li>
 <li>Offline image servicing (mounting, modifying, saving, or discarding)</li>
@@ -33,7 +33,7 @@
 <li>Windows Setup scripts and answer file mechanisms</li>
 <li>Validation, logs, and troubleshooting</li>
 </ul>
-<p>Out of scope:</p>
+<p>It does not cover:</p>
 <ul>
 <li>Bypassing system requirement checks</li>
 <li>Modifying Windows activation mechanisms</li>
@@ -94,8 +94,8 @@
 </tr>
 </tbody>
 </table></div>
-<p><strong>Currency note:</strong> This build (26300.9457) is behind the latest cumulative build published for 26H2 (26300.10075, 2026-11-19). Update it after installation through Windows Update or by offline servicing.</p>
-<p><strong>Verification scope:</strong> The observations in this document come from parsing WIM XML metadata, checking file presence and sizes, and reviewing winget package metadata. DISM mount and commit operations and ISO creation were not run because they require administrative privileges. The relevant sections were cross-checked against Microsoft Learn documentation.</p>
+<p><strong>Build note:</strong> The reference image (26300.9457) predates the latest 26H2 cumulative build (26300.10075, November 19, 2026). Update it through Windows Update or service it offline before deployment.</p>
+<p><strong>Checks performed:</strong> WIM XML metadata, file presence and sizes, and winget package information were reviewed. DISM mount/commit and ISO creation were not tested as part of this review. Test these steps on your target media in a virtual machine before deployment.</p>
 <hr />
         <nav class="pager" aria-label="Page navigation"><a class="pager-link next" href="medya-ve-araclar.html"><span class="pager-label">Next →</span><span class="pager-title">3–4. Prerequisites and Media Structure</span></a></nav>
         <footer class="site-footer">Document version: 2.0 · Last reviewed: November 22, 2026</footer>

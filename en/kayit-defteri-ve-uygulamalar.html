@@ -23,11 +23,11 @@
 <li><strong>Location:</strong> <code>C:\Users\Default\NTUSER.DAT</code>. In an offline image: <code>&lt;mount directory&gt;\Users\Default\NTUSER.DAT</code>.</li>
 <li><strong>Status:</strong> The default user hive is not loaded in the registry by default. To edit it, load it with <code>reg load</code> and unload it with <code>reg unload</code> when finished.</li>
 <li><strong>Scope:</strong> Affects only newly created user profiles.</li>
-<li><strong>Microsoft's method:</strong> The documented approach is to prepare the profile on a reference machine and copy it to the default profile using <code>CopyProfile</code>.</li>
+<li><strong>Microsoft's method:</strong> Microsoft documents preparing the profile on a reference machine and copying it to the default profile with <code>CopyProfile</code>.</li>
 <li><strong>Default applications:</strong> Windows can load default app associations from <code>oemdefaultassociations.xml</code> when the user signs in for the first time (Microsoft documentation).</li>
 </ul>
 <h3 id="referans-anahtarlar">9.2 Reference registry keys</h3>
-<p>This table is for reference. Verify each value on the target version in a virtual machine.</p>
+<p>Registry paths and values can change between Windows releases. Test them on the target release in a virtual machine before deployment.</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -113,7 +113,7 @@ Remove-AppxProvisionedPackage -Path &lt;MOUNT_DIRECTORY&gt; -PackageName &lt;FUL
 <ul>
 <li>Microsoft describes Microsoft Edge as a core component of Windows and states that it cannot be removed.</li>
 <li>WebView2 Runtime is used by many applications, including Teams and Office.</li>
-<li>Deleting Edge or WebView2 files or services during setup can cause instability and application errors after installation. Therefore, this document does not include a method for removing Edge or WebView2.</li>
+<li>Removing Edge or WebView2 files and services can break Windows and applications that depend on them. This guide does not include removal steps.</li>
 </ul>
 <hr />
         <nav class="pager" aria-label="Page navigation"><a class="pager-link prev" href="iso-ve-otomasyon.html"><span class="pager-label">← Previous</span><span class="pager-title">7–8. Booting, ISO, and Automation</span></a><a class="pager-link next" href="dogrulama-ve-lisans.html"><span class="pager-label">Next →</span><span class="pager-title">11–13. Validation, Lifecycle, and Licensing</span></a></nav>

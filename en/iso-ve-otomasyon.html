@@ -96,23 +96,23 @@
 <ul>
 <li><strong>Location:</strong> <code>%WINDIR%\Setup\Scripts\SetupComplete.cmd</code></li>
 <li><strong>Privileges:</strong> Local System (LocalSystem)</li>
-<li><strong>Timing:</strong> Microsoft documentation describes two different timings. The "Order of operations" section says it runs after setup and before the sign-in screen; the introduction says it runs immediately after the desktop is displayed. Write the script so that it produces the correct result in either case (idempotently).</li>
+<li><strong>Timing:</strong> Microsoft's article gives conflicting timings: its order-of-operations section says SetupComplete runs before sign-in, while the introduction says it runs after the desktop appears. Make the script idempotent and do not rely on a single exact time.</li>
 <li><strong>Exit code:</strong> Setup does not check the script's exit code.</li>
 <li><strong>Restart:</strong> Do not use restart commands such as <code>shutdown -r</code> inside the script. Setup state becomes corrupted and the script cannot resume.</li>
 <li><strong>Domain:</strong> On domain-joined machines, domain Group Policy is not applied until the script completes.</li>
-<li><strong>Product key type:</strong> According to the documentation, this feature may be disabled for installations using OEM product keys, except on Enterprise and Server editions.</li>
+<li><strong>Product key type:</strong> SetupComplete may be disabled when Windows is installed with an OEM product key; this restriction does not apply to Enterprise or Server editions.</li>
 <li><strong>Log:</strong> <code>C:\Windows\Panther\UnattendGC\setupact.log</code></li>
 </ul>
 <h3 id="errorhandler">8.3 ErrorHandler.cmd</h3>
 <ul>
 <li><strong>Location:</strong> <code>%WINDIR%\Setup\Scripts\ErrorHandler.cmd</code></li>
-<li>Runs when setup stops because of a fatal error. It executes synchronously with Local System privileges and may be called more than once. Therefore, it should be idempotent.</li>
+<li>Runs when setup stops because of a fatal error. It runs synchronously with Local System privileges and Windows may call it more than once, so make the script safe to rerun.</li>
 <li>It can also be supplied from outside the media using <code>Setup /m:&lt;folder&gt;</code>.</li>
 </ul>
 <h3 id="bolum-8-4">8.4 Edition-specific behavior</h3>
 <ul>
 <li><strong>Windows 11 Home:</strong> Requires an internet connection and a Microsoft account during initial setup (official requirements documentation). Account for this when planning setup automation.</li>
-<li><strong>OOBE and account policies:</strong> These may vary by edition. Methods for bypassing OOBE behavior are outside the scope of this document.</li>
+<li><strong>OOBE and account policies:</strong> These may vary by edition. This guide does not cover bypassing OOBE behavior.</li>
 </ul>
 <hr />
         <nav class="pager" aria-label="Page navigation"><a class="pager-link prev" href="servisleme.html"><span class="pager-label">← Previous</span><span class="pager-title">5–6. WIM Architecture and Servicing</span></a><a class="pager-link next" href="kayit-defteri-ve-uygulamalar.html"><span class="pager-label">Next →</span><span class="pager-title">9–10. Registry and Applications</span></a></nav>

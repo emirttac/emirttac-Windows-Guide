@@ -20,11 +20,11 @@
 <h2 id="on-kosullar">3. Prerequisites and Tools</h2>
 <h3 id="calisma-ortami">3.1 Working environment</h3>
 <ul>
-<li><strong>Privileges:</strong> An elevated (administrator) command prompt is required for mounting, committing, <code>reg load</code>, and ISO creation. In a non-elevated session, DISM refuses to run with <code>Error: 740</code> (verified in this environment).</li>
-<li><strong>Mount directory:</strong> It must be empty and should not be created in a protected folder such as Documents (Microsoft recommendation).</li>
+<li><strong>Privileges:</strong> Run Command Prompt as an administrator to mount or commit an image, use <code>reg load</code>, or create an ISO. DISM returns <code>Error: 740</code> when an operation requires elevation and the prompt is not elevated.</li>
+<li><strong>Mount directory:</strong> Choose an empty folder outside protected locations such as Documents.</li>
 <li><strong>Disk space:</strong> The working drive must have several times the WIM file's size available. If an operation is interrupted because space runs out, the WIM file may become corrupted.</li>
-<li><strong>Path length:</strong> Enable long path support (<code>LongPathsEnabled</code>) for deep directory structures.</li>
-<li><strong>Security software:</strong> Real-time scanning can slow down or interrupt mounting and committing. In an enterprise environment, coordinate exclusions with the security team.</li>
+<li><strong>Path length:</strong> Keep working paths short. If you need longer paths, check that <code>LongPathsEnabled</code> and your tools support them.</li>
+<li><strong>Security software:</strong> Real-time scanning can slow servicing. On managed devices, discuss any exclusions with the security team; do not disable protection globally.</li>
 <li><strong>Read-only attribute:</strong> Files copied from media may be read-only. Check their attributes before proceeding.</li>
 </ul>
 <h3 id="arac-seti">3.2 Toolset</h3>
@@ -74,7 +74,7 @@
 </tr>
 </tbody>
 </table></div>
-<p><strong>Note:</strong> The winget package <code>Microsoft.OSCDIMG</code> (version 2.56, publisher: Microsoft) is available as a portable distribution. In production, matching the oscdimg version to the ADK version in use is recommended.</p>
+<p><code>oscdimg</code> is included in the Deployment Tools component of the Windows ADK. For production work, use the version shipped with your ADK; if you use another distribution, check compatibility before mixing versions.</p>
 <h3 id="adk-politikasi">3.3 ADK version policy</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -100,8 +100,8 @@
 <p>Rules:</p>
 <ul>
 <li>When possible, use the ADK that matches the Windows version being serviced. In mixed environments, prefer the ADK appropriate for the newest operating system. Newer Deployment Tools can also run on older Windows versions.</li>
-<li>Apply the current ADK and servicing patch for the WSIM component in connection with <strong>CVE-2026-25166</strong>.</li>
-<li>Because of a vulnerability in the third-party KitBuilder component, upgrade to ADK 10.1.26100.2454 (December 2024) or later.</li>
+<li>If you use WSIM, use an ADK version that includes the fix for <a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-25166"><strong>CVE-2026-25166</strong></a>.</li>
+<li>ADK servicing patches apply to version 10.1.26100.2454 and later. See Microsoft's <a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-servicing">ADK servicing guide</a> for current compatibility and installation steps.</li>
 <li>32-bit Windows PE is not supported for Windows 11.</li>
 </ul>
 <hr />
@@ -132,7 +132,7 @@
 </tr>
 <tr>
 <td><code>efi\microsoft\boot\efisys_noprompt.bin</code></td>
-<td>As its name suggests, the UEFI variant without the "press a key" prompt</td>
+<td>UEFI variant that skips the initial "Press any key" prompt</td>
 </tr>
 <tr>
 <td><code>efi\microsoft\boot\cdboot.efi</code>, <code>cdboot_noprompt.efi</code></td>
@@ -152,7 +152,7 @@
 </tr>
 <tr>
 <td><code>sources\sxs\</code></td>
-<td>Features on Demand sources: .NET Framework 3.5 (NetFx3) and optional Internet Explorer packages</td>
+<td>Source files for optional Windows features; available packages vary by release and media.</td>
 </tr>
 <tr>
 <td><code>support\logging\</code>, <code>sources\etwproviders\</code></td>

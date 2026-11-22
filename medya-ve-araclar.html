@@ -49,11 +49,11 @@
 
         <h3 id="calisma-ortami">3.1 Çalışma ortamı</h3>
         <ul>
-          <li><strong>Yetki:</strong> Bağlama, kaydetme, <code>reg load</code> ve ISO üretimi için yükseltilmiş (yönetici) komut istemi zorunludur. Yükseltilmemiş oturumda DISM <code>Error: 740</code> ile çalışmayı reddeder (bu ortamda doğrulandı).</li>
-          <li><strong>Bağlama dizini:</strong> Boş olmalıdır ve Belgelerim gibi korumalı klasörlerde oluşturulmamalıdır (Microsoft önerisi).</li>
+          <li><strong>Yetki:</strong> İmaj bağlama/kaydetme, <code>reg load</code> ve ISO üretimi için Komut İstemi'ni yönetici olarak açın. Yetkisiz oturumda DISM, yükseltilmiş izin gerektiğinde <code>Error: 740</code> döndürür.</li>
+          <li><strong>Bağlama dizini:</strong> Boş bir klasör seçin; Belgeler gibi korumalı konumları kullanmayın.</li>
           <li><strong>Disk alanı:</strong> Çalışma sürücüsünde WIM boyutunun birkaç katı kadar boş alan bulunmalıdır. Alan yetersizliğinde işlem yarıda kalırsa WIM dosyası bozulabilir.</li>
-          <li><strong>Yol uzunluğu:</strong> Derin dizin yapıları için uzun yol desteği (<code>LongPathsEnabled</code>) etkinleştirilmelidir.</li>
-          <li><strong>Güvenlik yazılımı:</strong> Gerçek zamanlı tarama bağlama ve kaydetme işlemlerini yavaşlatabilir veya kesebilir. Kurumsal ortamda istisna tanımları güvenlik ekibiyle koordine edilmelidir.</li>
+          <li><strong>Yol uzunluğu:</strong> Çalışma yollarını kısa tutun. Uzun yol kullanmanız gerekiyorsa <code>LongPathsEnabled</code> ayarının ve kullandığınız araçların desteğini kontrol edin.</li>
+          <li><strong>Güvenlik yazılımı:</strong> Gerçek zamanlı tarama işlemleri yavaşlatabilir. Kurumsal cihazlarda olası istisnaları güvenlik ekibiyle değerlendirin; korumayı genel olarak kapatmayın.</li>
           <li><strong>Salt okunur öznitelik:</strong> Medyadan kopyalanan dosyalar salt okunur olabilir. İşlemden önce öznitelikleri kontrol edin.</li>
         </ul>
 
@@ -106,7 +106,7 @@
             </tbody>
           </table>
         </div>
-        <p><strong>Not:</strong> <code>oscdimg</code> için winget paketi <code>Microsoft.OSCDIMG</code> (sürüm 2.56, yayıncı: Microsoft) mevcuttur ve taşınabilir (portable) bir dağıtımdır. Üretim ortamlarında oscdimg sürümünün, kullanılan ADK sürümüyle eşleştirilmesi önerilir.</p>
+        <p><code>oscdimg</code>, Windows ADK'nin Deployment Tools bileşeninde bulunur. Üretim işlerinde, ADK ile birlikte gelen sürümü kullanın; farklı bir dağıtım kullanıyorsanız sürümleri karıştırmadan önce uyumluluğu doğrulayın.</p>
 
         <h3 id="adk-politikasi">3.3 ADK sürüm politikası</h3>
         <div class="table-wrap">
@@ -136,8 +136,8 @@
         <p>Kurallar:</p>
         <ul>
           <li>Mümkünse çalışılan Windows sürümüyle eşleşen ADK kullanılmalıdır. Karma ortamlarda en yeni işletim sistemine uygun ADK tercih edilir. Yeni Dağıtım Araçları eski Windows sürümlerinde de çalışabilir.</li>
-          <li>WSIM bileşeni için <strong>CVE-2026-25166</strong> kapsamında güncel ADK ve servicing yaması uygulanmalıdır.</li>
-          <li>Üçüncü taraf KitBuilder bileşenindeki güvenlik açığı nedeniyle ADK 10.1.26100.2454 (Aralık 2024) ve sonrası sürümlere geçilmelidir.</li>
+          <li>WSIM kullanıyorsanız <a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-25166" target="_blank" rel="noopener"><strong>CVE-2026-25166</strong> için yayımlanan düzeltmeyi içeren ADK sürümünü</a> kullanın.</li>
+          <li>ADK yamaları, 10.1.26100.2454 ve sonraki sürümlere uygulanabilir. Güncel uyumluluk ve kurulum adımları için <a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-servicing" target="_blank" rel="noopener">ADK servicing belgesine</a> bakın.</li>
           <li>Windows 11 için 32-bit Windows PE desteklenmez.</li>
         </ul>
 
@@ -169,7 +169,7 @@
               </tr>
               <tr>
                 <td><code>efi\microsoft\boot\efisys_noprompt.bin</code></td>
-                <td>Adından anlaşıldığı üzere "tuşa basın" istemi olmayan UEFI varyantı</td>
+                <td>Başlangıçta "tuşa basın" istemini göstermeyen UEFI varyantı</td>
               </tr>
               <tr>
                 <td><code>efi\microsoft\boot\cdboot.efi</code>, <code>cdboot_noprompt.efi</code></td>
@@ -189,7 +189,7 @@
               </tr>
               <tr>
                 <td><code>sources\sxs\</code></td>
-                <td>Özellik-üzerine-talep (Features on Demand) kaynakları: .NET Framework 3.5 (NetFx3) ve Internet Explorer isteğe bağlı paketleri</td>
+                <td>İsteğe bağlı Windows özelliklerinin kaynak dosyaları; kullanılabilir paketler sürüme ve medyaya göre değişir.</td>
               </tr>
               <tr>
                 <td><code>support\logging\</code>, <code>sources\etwproviders\</code></td>
