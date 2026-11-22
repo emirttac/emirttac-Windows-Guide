@@ -13,7 +13,7 @@
       <a class="site-title" href="index.html">Windows Customization Guide by emirttac</a>
     </div>
     <div class="header-right">
-      <a class="language-link" href="en/servisleme.html" lang="en" hreflang="en">English</a>
+      <a class="language-link" href="en/servicing.html" lang="en" hreflang="en">English</a>
       <button id="theme-toggle" class="theme-toggle" type="button">Koyu Tema</button>
     </div>
   </header>
@@ -23,9 +23,9 @@
       <p class="nav-group-title">Bölümler</p>
       <ul class="nav-list">
         <li><a class="nav-link" href="index.html">1–2. Genel Bakış ve Kapsam</a></li>
-        <li><a class="nav-link" href="medya-ve-araclar.html">3–4. Ön Koşullar ve Medya Yapısı</a></li>
+        <li><a class="nav-link" href="media-and-tools.html">3–4. Ön Koşullar ve Medya Yapısı</a></li>
         <li>
-          <a class="nav-link active" href="servisleme.html">5–6. WIM Mimarisi ve Servisleme</a>
+          <a class="nav-link active" href="servicing.html">5–6. WIM Mimarisi ve Servisleme</a>
           <ul class="nav-sub">
             <li><a href="#wim-mimarisi">5. Sürüm İndeksleri ve WIM Mimarisi</a></li>
             <li><a href="#medya-indeksleri">5.2 Bu medyadaki indeksler</a></li>
@@ -37,10 +37,10 @@
             <li><a href="#kurtarma">6.4 Kurtarma komutları</a></li>
           </ul>
         </li>
-        <li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Önyükleme, ISO ve Otomasyon</a></li>
-        <li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Kayıt Defteri ve Uygulamalar</a></li>
-        <li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</a></li>
-        <li><a class="nav-link" href="sorun-giderme.html">14–16. Sorun Giderme, Sözlük ve Kaynaklar</a></li>
+        <li><a class="nav-link" href="iso-and-automation.html">7–8. Önyükleme, ISO ve Otomasyon</a></li>
+        <li><a class="nav-link" href="registry-and-apps.html">9–10. Kayıt Defteri ve Uygulamalar</a></li>
+        <li><a class="nav-link" href="validation-and-licensing.html">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</a></li>
+        <li><a class="nav-link" href="troubleshooting.html">14–16. Sorun Giderme, Sözlük ve Kaynaklar</a></li>
       </ul>
     </nav>
 
@@ -172,7 +172,7 @@ dism /Image:"&lt;BAĞLAMA&gt;" /Get-Packages /Format:Table</code></pre>
                 <td>Hazır (provisioned) uygulamalar</td>
                 <td><code>Get-</code> ve <code>Remove-AppxProvisionedPackage</code> (Dism modülü); <code>/Get-ProvisionedAppxPackages</code>, <code>/Remove-AppxProvisionedPackage</code></td>
                 <td>Yeni kullanıcı profilleri</td>
-                <td>Mevcut kullanıcıların uygulamalarını etkilemez (bkz. <a href="kayit-defteri-ve-uygulamalar.html#hazir-uygulamalar">10</a>)</td>
+                <td>Mevcut kullanıcıların uygulamalarını etkilemez (bkz. <a href="registry-and-apps.html#hazir-uygulamalar">10</a>)</td>
               </tr>
               <tr>
                 <td>Paketler (.cab, .msu)</td>
@@ -220,7 +220,7 @@ dism /Image:"&lt;BAĞLAMA&gt;" /Get-Packages /Format:Table</code></pre>
                 <td>Kurulum betikleri</td>
                 <td><code>Windows\Setup\Scripts\</code></td>
                 <td>Kurulum sonrası eylemler</td>
-                <td>Bkz. <a href="iso-ve-otomasyon.html#otomasyon">8</a></td>
+                <td>Bkz. <a href="iso-and-automation.html#otomasyon">8</a></td>
               </tr>
             </tbody>
           </table>
@@ -270,12 +270,12 @@ dism /Image:"&lt;BAĞLAMA&gt;" /Get-Packages /Format:Table</code></pre>
               <tr>
                 <td>Uyumsuz ADK veya DISM</td>
                 <td>Hatalı servisleme</td>
-                <td>Sürüm eşleştirme (bkz. <a href="medya-ve-araclar.html#adk-politikasi">3.3</a>)</td>
+                <td>Sürüm eşleştirme (bkz. <a href="media-and-tools.html#adk-politikasi">3.3</a>)</td>
               </tr>
               <tr>
                 <td>Lisans ihlali</td>
                 <td>Hukuki risk</td>
-                <td>Bkz. <a href="dogrulama-ve-lisans.html#guvenlik-lisans">13</a></td>
+                <td>Bkz. <a href="validation-and-licensing.html#guvenlik-lisans">13</a></td>
               </tr>
             </tbody>
           </table>
@@ -289,11 +289,11 @@ dism /Image:"&lt;BAĞLAMA&gt;" /Get-Packages /Format:Table</code></pre>
         </ul>
 
         <nav class="pager" aria-label="Sayfa gezintisi">
-          <a class="pager-link prev" href="medya-ve-araclar.html">
+          <a class="pager-link prev" href="media-and-tools.html">
             <span class="pager-label">← Önceki</span>
             <span class="pager-title">3–4. Ön Koşullar ve Medya Yapısı</span>
           </a>
-          <a class="pager-link next" href="iso-ve-otomasyon.html">
+          <a class="pager-link next" href="iso-and-automation.html">
             <span class="pager-label">Sonraki →</span>
             <span class="pager-title">7–8. Önyükleme, ISO ve Otomasyon</span>
           </a>
