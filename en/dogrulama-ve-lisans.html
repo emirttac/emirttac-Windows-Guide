@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>11–13. Validation, Lifecycle, and Licensing — Windows Customization Guide by emirttac</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left"><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menu">☰</button><a class="site-title" href="index.html">Windows Customization Guide by emirttac</a></div>
+    <div class="header-right"><a class="language-link" href="../dogrulama-ve-lisans.html" lang="tr" hreflang="tr">Türkçe</a><button id="theme-toggle" class="theme-toggle" type="button">Light theme</button></div>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Sections"><p class="nav-group-title">Sections</p><ul class="nav-list"><li><a class="nav-link" href="index.html">1–2. Overview and Scope</a></li><li><a class="nav-link" href="medya-ve-araclar.html">3–4. Prerequisites and Media Structure</a></li><li><a class="nav-link" href="servisleme.html">5–6. WIM Architecture and Servicing</a></li><li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Booting, ISO, and Automation</a></li><li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Registry and Applications</a></li><li><a class="nav-link active" href="dogrulama-ve-lisans.html" aria-current="page">11–13. Validation, Lifecycle, and Licensing</a></li><li><a class="nav-link" href="sorun-giderme.html">14–16. Troubleshooting, Glossary, and References</a></li></ul></nav>
+    <main class="content">
+      
+      <div class="content-inner">
+        <h1>Validation, Lifecycle, and Licensing</h1>
+<h2 id="dogrulama">11. Validation</h2>
+<h3 id="bolum-11-1">11.1 Test environment (Hyper-V)</h3>
+<ul>
+<li><strong>Edition:</strong> Windows Pro or above (client Hyper-V).</li>
+<li><strong>Virtual machine:</strong> Generation 2. Secure Boot is enabled by default on Generation 2 virtual machines.</li>
+<li><strong>vTPM:</strong> Windows 11 requires TPM 2.0. Adding a vTPM to a Generation 2 virtual machine allows BitLocker and TPM-based features to be tested.</li>
+<li><strong>Hardware reference (official Microsoft requirements):</strong> 64-bit, 1 GHz+ processor with at least 2 cores; 4 GB+ RAM; 64 GB+ storage; DirectX 12 and a WDDM 2.0 driver; UEFI firmware with Secure Boot support; TPM 2.0; 720p (9") display.</li>
+</ul>
+<h3 id="kontrol-listesi">11.2 Checklist</h3>
+<ul>
+<li>☐ ISO SHA-256 hash recorded</li>
+<li>☐ <code>install.wim</code> indexes verified with <code>dism /Get-ImageInfo</code></li>
+<li>☐ BIOS and UEFI boot tested separately</li>
+<li>☐ Installed edition matches the index: <code>DISM /Online /Get-CurrentEdition</code></li>
+<li>☐ Script actions recorded in <code>C:\Windows\Panther\UnattendGC\setupact.log</code></li>
+<li>☐ Default profile settings checked with a new local user</li>
+<li>☐ Provisioned package status verified with <code>Get-AppxPackage -AllUsers</code></li>
+<li>☐ Secure Boot status: <code>Confirm-SecureBootUEFI</code></li>
+<li>☐ Device encryption status: <code>manage-bde -status</code></li>
+<li>☐ Windows Update status and build number checked</li>
+</ul>
+<hr />
+<h2 id="yasam-dongusu">12. Release Lifecycle and Updates</h2>
+<h3 id="bolum-12-1">12.1 Windows 11 release status</h3>
+<p>Source: Microsoft Learn, Windows 11 release information (updated 2026-11-19).</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Version (build)</th>
+<th>Release (GA)</th>
+<th>End of support for Home, Pro, Pro Education, Pro for Workstations</th>
+<th>End of support for Enterprise, Education</th>
+<th>Current build</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>26H2 (26300)</td>
+<td>2026-09-29</td>
+<td>2028-10-10</td>
+<td>2029-10-09</td>
+<td>26300.10075</td>
+</tr>
+<tr>
+<td>26H1 (28000)</td>
+<td>2026-02-10</td>
+<td>2028-03-14</td>
+<td>2029-03-13</td>
+<td>28000.3620</td>
+</tr>
+<tr>
+<td>25H2 (26200)</td>
+<td>2025-09-30</td>
+<td>2027-10-12</td>
+<td>2028-10-10</td>
+<td>26200.10075</td>
+</tr>
+<tr>
+<td>24H2 (26100)</td>
+<td>2024-10-01</td>
+<td>Support ended</td>
+<td>2027-10-12</td>
+<td>26100.9974</td>
+</tr>
+<tr>
+<td>23H2 (22631)</td>
+<td>2023-10-31</td>
+<td>Support ended</td>
+<td>Support ended</td>
+<td>22631.7714</td>
+</tr>
+</tbody>
+</table></div>
+<p>Additional notes:</p>
+<ul>
+<li>Feature updates receive 24 months of support for Home, Pro, Pro for Workstations, and Pro Education, and 36 months for Enterprise and Education.</li>
+<li>26H1 is only for new devices released in 2026. It is not offered as an in-place upgrade on 24H2 or 25H2 devices. IoT Enterprise is not supported on this release.</li>
+<li>Support for Enterprise LTSC 2024 (based on 24H2) ends on 2029-10-09. Extended support for IoT Enterprise LTSC 2024 ends on 2034-10-10.</li>
+</ul>
+<h3 id="bolum-12-2">12.2 26H2 deployment model</h3>
+<p>26H2 shares the same servicing branch as 24H2 and 25H2. The transition on 24H2 and 25H2 devices uses an enablement package (eKB). ISO media is used for clean installation and reimaging (Windows Insider Blog, Release Preview announcement).</p>
+<h3 id="bolum-12-3">12.3 Offline updates</h3>
+<ul>
+<li>Add update packages with <code>/Add-Package</code>. The package version, architecture, and target image version must match.</li>
+<li>After servicing, the component store can be cleaned using <code>/Cleanup-Image /StartComponentCleanup</code>. Adding <code>/ResetBase</code> permanently prevents rollback to earlier component versions.</li>
+<li>Compare the post-update build number with the current build on the release information page.</li>
+</ul>
+<hr />
+<h2 id="guvenlik-lisans">13. Security, Licensing, and Distribution Boundaries</h2>
+<ul>
+<li><strong>Source:</strong> Use media obtained only from official Microsoft sources. Compare the SHA-256 hash with the official release.</li>
+<li><strong>License:</strong> Windows is subject to the Microsoft Software License Terms. Reproduction, distribution, and activation of modified media may be restricted by those terms. Legal assessment is required.</li>
+<li><strong>This repository:</strong> The repository containing this document must not include Windows ISO content (<code>install.wim</code>, <code>sources\</code>, <code>boot\</code>, <code>efi\</code>, etc.). GitHub enforces a 100 MiB per-file limit. Republishing Microsoft binaries may violate licensing terms.</li>
+<li><strong>Security features:</strong> Do not disable Secure Boot, device encryption or BitLocker, Windows Defender, or memory integrity.</li>
+<li><strong>Security updates:</strong> Keep the ADK and servicing patches current (see 3.3).</li>
+<li><strong>Enterprise alternative:</strong> For managed devices, prefer management solutions such as Windows Autopilot and Microsoft Intune over image editing.</li>
+</ul>
+<hr />
+        <nav class="pager" aria-label="Page navigation"><a class="pager-link prev" href="kayit-defteri-ve-uygulamalar.html"><span class="pager-label">← Previous</span><span class="pager-title">9–10. Registry and Applications</span></a><a class="pager-link next" href="sorun-giderme.html"><span class="pager-label">Next →</span><span class="pager-title">14–16. Troubleshooting, Glossary, and References</span></a></nav>
+        <footer class="site-footer">Document version: 2.0 · Last reviewed: November 22, 2026</footer>
+      </div>
+    </main>
+  </div>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

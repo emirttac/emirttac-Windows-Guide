@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3–4. Prerequisites and Media Structure — Windows Customization Guide by emirttac</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left"><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menu">☰</button><a class="site-title" href="index.html">Windows Customization Guide by emirttac</a></div>
+    <div class="header-right"><a class="language-link" href="../medya-ve-araclar.html" lang="tr" hreflang="tr">Türkçe</a><button id="theme-toggle" class="theme-toggle" type="button">Light theme</button></div>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Sections"><p class="nav-group-title">Sections</p><ul class="nav-list"><li><a class="nav-link" href="index.html">1–2. Overview and Scope</a></li><li><a class="nav-link active" href="medya-ve-araclar.html" aria-current="page">3–4. Prerequisites and Media Structure</a></li><li><a class="nav-link" href="servisleme.html">5–6. WIM Architecture and Servicing</a></li><li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Booting, ISO, and Automation</a></li><li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Registry and Applications</a></li><li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Validation, Lifecycle, and Licensing</a></li><li><a class="nav-link" href="sorun-giderme.html">14–16. Troubleshooting, Glossary, and References</a></li></ul></nav>
+    <main class="content">
+      
+      <div class="content-inner">
+        <h1>Prerequisites and Media Structure</h1>
+<h2 id="on-kosullar">3. Prerequisites and Tools</h2>
+<h3 id="calisma-ortami">3.1 Working environment</h3>
+<ul>
+<li><strong>Privileges:</strong> An elevated (administrator) command prompt is required for mounting, committing, <code>reg load</code>, and ISO creation. In a non-elevated session, DISM refuses to run with <code>Error: 740</code> (verified in this environment).</li>
+<li><strong>Mount directory:</strong> It must be empty and should not be created in a protected folder such as Documents (Microsoft recommendation).</li>
+<li><strong>Disk space:</strong> The working drive must have several times the WIM file's size available. If an operation is interrupted because space runs out, the WIM file may become corrupted.</li>
+<li><strong>Path length:</strong> Enable long path support (<code>LongPathsEnabled</code>) for deep directory structures.</li>
+<li><strong>Security software:</strong> Real-time scanning can slow down or interrupt mounting and committing. In an enterprise environment, coordinate exclusions with the security team.</li>
+<li><strong>Read-only attribute:</strong> Files copied from media may be read-only. Check their attributes before proceeding.</li>
+</ul>
+<h3 id="arac-seti">3.2 Toolset</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Source</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dism.exe</code></td>
+<td>Windows (can be updated with ADK Deployment Tools)</td>
+<td>WIM queries, mounting and unmounting, package, feature and driver servicing, export, and splitting</td>
+</tr>
+<tr>
+<td>Dism PowerShell module</td>
+<td>Windows</td>
+<td><code>Get-AppxProvisionedPackage</code>, <code>Remove-AppxProvisionedPackage</code></td>
+</tr>
+<tr>
+<td><code>reg.exe</code></td>
+<td>Windows</td>
+<td>Loading and unloading offline registry hives</td>
+</tr>
+<tr>
+<td><code>oscdimg.exe</code></td>
+<td>Windows ADK, Deployment Tools</td>
+<td>Creating bootable ISOs</td>
+</tr>
+<tr>
+<td>Windows Setup</td>
+<td>Media (<code>setup.exe</code>, <code>sources\boot.wim</code>)</td>
+<td>Installation and processing scripts and answer files</td>
+</tr>
+<tr>
+<td>Hyper-V</td>
+<td>Windows Pro and above</td>
+<td>Validation in a Generation 2 virtual machine</td>
+</tr>
+<tr>
+<td>Event Viewer, <code>wevtutil</code>, <code>tracerpt</code></td>
+<td>Windows</td>
+<td>Analyzing <code>setup.etl</code> event traces</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Note:</strong> The winget package <code>Microsoft.OSCDIMG</code> (version 2.56, publisher: Microsoft) is available as a portable distribution. In production, matching the oscdimg version to the ADK version in use is recommended.</p>
+<h3 id="adk-politikasi">3.3 ADK version policy</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Target version</th>
+<th>ADK version</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows 11 26H2, 25H2, 24H2</td>
+<td><strong>10.1.26100.9457 (September 2026)</strong> and the latest ADK servicing patch</td>
+<td>The appropriate version family for this media</td>
+</tr>
+<tr>
+<td>Windows 11 26H1</td>
+<td>10.1.28000.3481 (October 2026)</td>
+<td>For 26H1 media only</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rules:</p>
+<ul>
+<li>When possible, use the ADK that matches the Windows version being serviced. In mixed environments, prefer the ADK appropriate for the newest operating system. Newer Deployment Tools can also run on older Windows versions.</li>
+<li>Apply the current ADK and servicing patch for the WSIM component in connection with <strong>CVE-2026-25166</strong>.</li>
+<li>Because of a vulnerability in the third-party KitBuilder component, upgrade to ADK 10.1.26100.2454 (December 2024) or later.</li>
+<li>32-bit Windows PE is not supported for Windows 11.</li>
+</ul>
+<hr />
+<h2 id="medya-yapisi">4. Installation Media Structure</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>setup.exe</code>, <code>sources\setupplatform.exe</code>, etc.</td>
+<td>Setup launchers</td>
+</tr>
+<tr>
+<td><code>bootmgr</code>, <code>bootmgr.efi</code>, <code>bootmgfw.efi</code></td>
+<td>Windows Boot Manager (BIOS and UEFI). These files are signed and must not be modified; otherwise Secure Boot validation will fail.</td>
+</tr>
+<tr>
+<td><code>boot\etfsboot.com</code></td>
+<td>BIOS El Torito boot sector (platform <code>0x00</code>)</td>
+</tr>
+<tr>
+<td><code>efi\microsoft\boot\efisys.bin</code></td>
+<td>UEFI El Torito boot image (platform <code>0xEF</code>)</td>
+</tr>
+<tr>
+<td><code>efi\microsoft\boot\efisys_noprompt.bin</code></td>
+<td>As its name suggests, the UEFI variant without the "press a key" prompt</td>
+</tr>
+<tr>
+<td><code>efi\microsoft\boot\cdboot.efi</code>, <code>cdboot_noprompt.efi</code></td>
+<td>UEFI boot loaders for CD/DVD</td>
+</tr>
+<tr>
+<td><code>boot\bcd</code>, <code>efi\microsoft\boot\bcd</code>, <code>boot\boot.sdi</code></td>
+<td>Boot Configuration Data (BCD) and RAM disk image</td>
+</tr>
+<tr>
+<td><code>sources\boot.wim</code></td>
+<td>WinPE-based setup environment</td>
+</tr>
+<tr>
+<td><code>sources\install.wim</code></td>
+<td>Windows image (6 indexes)</td>
+</tr>
+<tr>
+<td><code>sources\sxs\</code></td>
+<td>Features on Demand sources: .NET Framework 3.5 (NetFx3) and optional Internet Explorer packages</td>
+</tr>
+<tr>
+<td><code>support\logging\</code>, <code>sources\etwproviders\</code></td>
+<td>Scripts for loading setup ETW providers</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+        <nav class="pager" aria-label="Page navigation"><a class="pager-link prev" href="index.html"><span class="pager-label">← Previous</span><span class="pager-title">1–2. Overview and Scope</span></a><a class="pager-link next" href="servisleme.html"><span class="pager-label">Next →</span><span class="pager-title">5–6. WIM Architecture and Servicing</span></a></nav>
+        <footer class="site-footer">Document version: 2.0 · Last reviewed: November 22, 2026</footer>
+      </div>
+    </main>
+  </div>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

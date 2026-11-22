@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1–2. Overview and Scope — Windows Customization Guide by emirttac</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left"><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menu">☰</button><a class="site-title" href="index.html">Windows Customization Guide by emirttac</a></div>
+    <div class="header-right"><a class="language-link" href="../index.html" lang="tr" hreflang="tr">Türkçe</a><button id="theme-toggle" class="theme-toggle" type="button">Light theme</button></div>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Sections"><p class="nav-group-title">Sections</p><ul class="nav-list"><li><a class="nav-link active" href="index.html" aria-current="page">1–2. Overview and Scope</a></li><li><a class="nav-link" href="medya-ve-araclar.html">3–4. Prerequisites and Media Structure</a></li><li><a class="nav-link" href="servisleme.html">5–6. WIM Architecture and Servicing</a></li><li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Booting, ISO, and Automation</a></li><li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Registry and Applications</a></li><li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Validation, Lifecycle, and Licensing</a></li><li><a class="nav-link" href="sorun-giderme.html">14–16. Troubleshooting, Glossary, and References</a></li></ul></nav>
+    <main class="content">
+      <div class="hero"><span class="hero-label">Technical reference · Windows 11</span><p class="hero-title">Windows Customization Guide <span>by emirttac</span></p><p class="hero-description">Inspect, service, and validate using Microsoft tools.</p></div>
+      <div class="content-inner">
+        <h1>Windows Customization Guide by emirttac</h1>
+<blockquote>
+<p><strong>Scope:</strong> A conceptual reference for inspecting, servicing offline, and repackaging official Windows 11 installation media using only Microsoft tools (DISM, the Dism PowerShell module, <code>reg.exe</code>, <code>oscdimg</code>, and Windows Setup), without third-party tools.</p>
+<p><strong>Target:</strong> Windows 11, version 26H2 (build 26300), and supported earlier versions
+<strong>Last verified:</strong> November 22, 2026</p>
+<p>This is not a Microsoft-endorsed guide. It was prepared with reference to Microsoft Learn documentation. Windows is a trademark of Microsoft Corporation.</p>
+</blockquote>
+<hr />
+<h2 id="kapsam">1. Scope and Limitations</h2>
+<p>This document covers:</p>
+<ul>
+<li>Installation media structure and WIM/index architecture</li>
+<li>Offline image servicing (mounting, modifying, saving, or discarding)</li>
+<li>Creating bootable ISOs and choosing between UDF and ISO 9660</li>
+<li>Windows Setup scripts and answer file mechanisms</li>
+<li>Validation, logs, and troubleshooting</li>
+</ul>
+<p>Out of scope:</p>
+<ul>
+<li>Bypassing system requirement checks</li>
+<li>Modifying Windows activation mechanisms</li>
+<li>Disabling security features such as Secure Boot, BitLocker, Windows Defender, and memory integrity</li>
+<li>Removing Microsoft Edge and WebView2 Runtime (see 10.4)</li>
+<li>Third-party image editing tools</li>
+</ul>
+<hr />
+<h2 id="referans-medya">2. Reference Media and Verification Status</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+<th>Verification source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>File name</td>
+<td><code>Windows11_Client_x64_tr-tr_26300_9457.iso</code></td>
+<td>File name</td>
+</tr>
+<tr>
+<td>Version and build</td>
+<td>Windows 11 26H2, 10.0.26300.9457</td>
+<td><code>install.wim</code> metadata, Microsoft release table</td>
+</tr>
+<tr>
+<td>Release (build)</td>
+<td>2026-09-29, GA channel base build</td>
+<td>Microsoft Windows 11 release information</td>
+</tr>
+<tr>
+<td>Language and architecture</td>
+<td>tr-TR, x64</td>
+<td><code>install.wim</code> metadata</td>
+</tr>
+<tr>
+<td><code>sources\install.wim</code></td>
+<td>7,795,812,908 bytes (7.26 GiB)</td>
+<td>File size</td>
+</tr>
+<tr>
+<td><code>sources\boot.wim</code></td>
+<td>613,041,691 bytes (approximately 585 MiB)</td>
+<td>File size</td>
+</tr>
+<tr>
+<td>BIOS boot</td>
+<td><code>boot\etfsboot.com</code></td>
+<td>File presence</td>
+</tr>
+<tr>
+<td>UEFI boot</td>
+<td><code>efi\microsoft\boot\efisys.bin</code>, <code>efisys_noprompt.bin</code></td>
+<td>File presence</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Currency note:</strong> This build (26300.9457) is behind the latest cumulative build published for 26H2 (26300.10075, 2026-11-19). Update it after installation through Windows Update or by offline servicing.</p>
+<p><strong>Verification scope:</strong> The observations in this document come from parsing WIM XML metadata, checking file presence and sizes, and reviewing winget package metadata. DISM mount and commit operations and ISO creation were not run because they require administrative privileges. The relevant sections were cross-checked against Microsoft Learn documentation.</p>
+<hr />
+        <nav class="pager" aria-label="Page navigation"><a class="pager-link next" href="medya-ve-araclar.html"><span class="pager-label">Next →</span><span class="pager-title">3–4. Prerequisites and Media Structure</span></a></nav>
+        <footer class="site-footer">Document version: 2.0 · Last reviewed: November 22, 2026</footer>
+      </div>
+    </main>
+  </div>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

@@ -1,485 +1,485 @@
 # Windows Customization Guide by emirttac
 
-> **Kapsam:** Üçüncü taraf araç kullanmadan, yalnızca Microsoft araçlarıyla (DISM, Dism PowerShell modülü, `reg.exe`, `oscdimg`, Windows Setup) resmi Windows 11 kurulum medyasının incelenmesi, çevrimdışı olarak servislenmesi ve yeniden paketlenmesi için kavramsal bir referanstır.
+> **Scope:** A conceptual reference for inspecting, servicing offline, and repackaging official Windows 11 installation media using only Microsoft tools (DISM, the Dism PowerShell module, `reg.exe`, `oscdimg`, and Windows Setup), without third-party tools.
 >
-> **Hedef:** Windows 11, sürüm 26H2 (yapı 26300) ve destekli önceki sürümler
-> **Son doğrulama:** 22 Kasım 2026
+> **Target:** Windows 11, version 26H2 (build 26300), and supported earlier versions
+> **Last verified:** November 22, 2026
 >
-> Bu belge Microsoft tarafından onaylanmış bir kılavuz değildir. Microsoft Learn belgeleriyle karşılaştırılarak hazırlanmıştır. Windows, Microsoft Corporation'ın ticari markasıdır.
+> This is not a Microsoft-endorsed guide. It was prepared with reference to Microsoft Learn documentation. Windows is a trademark of Microsoft Corporation.
 
 ---
 
-## 1. Kapsam ve Sınırlar
+## 1. Scope and Limitations
 
-Bu belge aşağıdakileri kapsar:
+This document covers:
 
-- Kurulum medyasının yapısı ve WIM/indeks mimarisi
-- Çevrimdışı imaj servisleme (bağlama, değiştirme, kaydetme veya atma)
-- Önyüklenebilir ISO üretimi ve UDF / ISO 9660 kararları
-- Windows Setup betikleri ve yanıt dosyası mekanizmaları
-- Doğrulama, günlükler ve sorun giderme
+- Installation media structure and WIM/index architecture
+- Offline image servicing (mounting, modifying, saving, or discarding)
+- Creating bootable ISOs and choosing between UDF and ISO 9660
+- Windows Setup scripts and answer file mechanisms
+- Validation, logs, and troubleshooting
 
-Kapsam dışıdır:
+Out of scope:
 
-- Sistem gereksinimi denetimlerinin atlatılması
-- Windows etkinleştirme (activation) mekanizmalarının değiştirilmesi
-- Secure Boot, BitLocker, Windows Defender ve bellek bütünlüğü gibi güvenlik özelliklerinin devre dışı bırakılması
-- Microsoft Edge ve WebView2 Runtime'ın kaldırılması (bkz. 10.4)
-- Üçüncü taraf imaj düzenleme araçları
+- Bypassing system requirement checks
+- Modifying Windows activation mechanisms
+- Disabling security features such as Secure Boot, BitLocker, Windows Defender, and memory integrity
+- Removing Microsoft Edge and WebView2 Runtime (see 10.4)
+- Third-party image editing tools
 
 ---
 
-## 2. Referans Medya ve Doğrulama Durumu
+## 2. Reference Media and Verification Status
 
-| Özellik | Değer | Doğrulama kaynağı |
+| Property | Value | Verification source |
 |---|---|---|
-| Dosya adı | `Windows11_Client_x64_tr-tr_26300_9457.iso` | Dosya adı |
-| Sürüm ve yapı | Windows 11 26H2, 10.0.26300.9457 | `install.wim` meta verisi, Microsoft sürüm tablosu |
-| Yayın (yapı) | 2026-09-29, GA kanalı temel yapısı | Microsoft Windows 11 sürüm bilgileri |
-| Dil ve mimari | tr-TR, x64 | `install.wim` meta verisi |
-| `sources\install.wim` | 7.795.812.908 bayt (7,26 GiB) | Dosya boyutu |
-| `sources\boot.wim` | 613.041.691 bayt (yaklaşık 585 MiB) | Dosya boyutu |
-| BIOS önyükleme | `boot\etfsboot.com` | Dosya varlığı |
-| UEFI önyükleme | `efi\microsoft\boot\efisys.bin`, `efisys_noprompt.bin` | Dosya varlığı |
+| File name | `Windows11_Client_x64_tr-tr_26300_9457.iso` | File name |
+| Version and build | Windows 11 26H2, 10.0.26300.9457 | `install.wim` metadata, Microsoft release table |
+| Release (build) | 2026-09-29, GA channel base build | Microsoft Windows 11 release information |
+| Language and architecture | tr-TR, x64 | `install.wim` metadata |
+| `sources\install.wim` | 7,795,812,908 bytes (7.26 GiB) | File size |
+| `sources\boot.wim` | 613,041,691 bytes (approximately 585 MiB) | File size |
+| BIOS boot | `boot\etfsboot.com` | File presence |
+| UEFI boot | `efi\microsoft\boot\efisys.bin`, `efisys_noprompt.bin` | File presence |
 
-**Güncellik notu:** Bu yapı (26300.9457), 26H2 için yayımlanan en güncel kümülatif yapının (26300.10075, 2026-11-19) gerisindedir. Kurulum sonrasında Windows Update ile veya çevrimdışı servisleme ile güncellenmelidir.
+**Currency note:** This build (26300.9457) is behind the latest cumulative build published for 26H2 (26300.10075, 2026-11-19). Update it after installation through Windows Update or by offline servicing.
 
-**Doğrulama kapsamı:** Bu belgedeki gözlemler; WIM XML meta verisinin ayrıştırılmasından, dosya varlığı ve boyut kontrollerinden ve winget paket meta verisinden alınmıştır. DISM bağlama, kaydetme ve ISO üretimi yönetici yetkisi gerektirdiğinden çalıştırılmamıştır. İlgili bölümler Microsoft Learn belgeleriyle eşleştirilmiştir.
-
----
-
-## 3. Ön Koşullar ve Araçlar
-
-### 3.1 Çalışma ortamı
-
-- **Yetki:** Bağlama, kaydetme, `reg load` ve ISO üretimi için yükseltilmiş (yönetici) komut istemi zorunludur. Yükseltilmemiş oturumda DISM `Error: 740` ile çalışmayı reddeder (bu ortamda doğrulandı).
-- **Bağlama dizini:** Boş olmalıdır ve Belgelerim gibi korumalı klasörlerde oluşturulmamalıdır (Microsoft önerisi).
-- **Disk alanı:** Çalışma sürücüsünde WIM boyutunun birkaç katı kadar boş alan bulunmalıdır. Alan yetersizliğinde işlem yarıda kalırsa WIM dosyası bozulabilir.
-- **Yol uzunluğu:** Derin dizin yapıları için uzun yol desteği (`LongPathsEnabled`) etkinleştirilmelidir.
-- **Güvenlik yazılımı:** Gerçek zamanlı tarama bağlama ve kaydetme işlemlerini yavaşlatabilir veya kesebilir. Kurumsal ortamda istisna tanımları güvenlik ekibiyle koordine edilmelidir.
-- **Salt okunur öznitelik:** Medyadan kopyalanan dosyalar salt okunur olabilir. İşlemden önce öznitelikleri kontrol edin.
-
-### 3.2 Araç seti
-
-| Araç | Kaynak | Görevi |
-|---|---|---|
-| `dism.exe` | Windows (ADK Dağıtım Araçları ile güncellenebilir) | WIM sorgulama, bağlama ve ayırma, paket, özellik ve sürücü servisleme, dışa aktarma, bölme |
-| Dism PowerShell modülü | Windows | `Get-AppxProvisionedPackage`, `Remove-AppxProvisionedPackage` |
-| `reg.exe` | Windows | Çevrimdışı kayıt defteri kovanlarını (hive) yükleme ve boşaltma |
-| `oscdimg.exe` | Windows ADK, Dağıtım Araçları | Önyüklenebilir ISO üretimi |
-| Windows Setup | Medya (`setup.exe`, `sources\boot.wim`) | Kurulum, betik ve yanıt dosyası işleme |
-| Hyper-V | Windows Pro ve üzeri | Generation 2 sanal makinede doğrulama |
-| Olay Görüntüleyici, `wevtutil`, `tracerpt` | Windows | `setup.etl` olay izlerinin çözümlenmesi |
-
-**Not:** `oscdimg` için winget paketi `Microsoft.OSCDIMG` (sürüm 2.56, yayıncı: Microsoft) mevcuttur ve taşınabilir (portable) bir dağıtımdır. Üretim ortamlarında oscdimg sürümünün, kullanılan ADK sürümüyle eşleştirilmesi önerilir.
-
-### 3.3 ADK sürüm politikası
-
-| Hedef sürüm | ADK sürümü | Not |
-|---|---|---|
-| Windows 11 26H2, 25H2, 24H2 | **10.1.26100.9457 (Eylül 2026)** ve en güncel ADK servicing yaması | Bu medya için doğru sürüm ailesi |
-| Windows 11 26H1 | 10.1.28000.3481 (Ekim 2026) | Yalnızca 26H1 medyası için |
-
-Kurallar:
-
-- Mümkünse çalışılan Windows sürümüyle eşleşen ADK kullanılmalıdır. Karma ortamlarda en yeni işletim sistemine uygun ADK tercih edilir. Yeni Dağıtım Araçları eski Windows sürümlerinde de çalışabilir.
-- WSIM bileşeni için **CVE-2026-25166** kapsamında güncel ADK ve servicing yaması uygulanmalıdır.
-- Üçüncü taraf KitBuilder bileşenindeki güvenlik açığı nedeniyle ADK 10.1.26100.2454 (Aralık 2024) ve sonrası sürümlere geçilmelidir.
-- Windows 11 için 32-bit Windows PE desteklenmez.
+**Verification scope:** The observations in this document come from parsing WIM XML metadata, checking file presence and sizes, and reviewing winget package metadata. DISM mount and commit operations and ISO creation were not run because they require administrative privileges. The relevant sections were cross-checked against Microsoft Learn documentation.
 
 ---
 
-## 4. Kurulum Medyasının Yapısı
+## 3. Prerequisites and Tools
 
-| Yol | Görevi |
+### 3.1 Working environment
+
+- **Privileges:** An elevated (administrator) command prompt is required for mounting, committing, `reg load`, and ISO creation. In a non-elevated session, DISM refuses to run with `Error: 740` (verified in this environment).
+- **Mount directory:** It must be empty and should not be created in a protected folder such as Documents (Microsoft recommendation).
+- **Disk space:** The working drive must have several times the WIM file's size available. If an operation is interrupted because space runs out, the WIM file may become corrupted.
+- **Path length:** Enable long path support (`LongPathsEnabled`) for deep directory structures.
+- **Security software:** Real-time scanning can slow down or interrupt mounting and committing. In an enterprise environment, coordinate exclusions with the security team.
+- **Read-only attribute:** Files copied from media may be read-only. Check their attributes before proceeding.
+
+### 3.2 Toolset
+
+| Tool | Source | Purpose |
+|---|---|---|
+| `dism.exe` | Windows (can be updated with ADK Deployment Tools) | WIM queries, mounting and unmounting, package, feature and driver servicing, export, and splitting |
+| Dism PowerShell module | Windows | `Get-AppxProvisionedPackage`, `Remove-AppxProvisionedPackage` |
+| `reg.exe` | Windows | Loading and unloading offline registry hives |
+| `oscdimg.exe` | Windows ADK, Deployment Tools | Creating bootable ISOs |
+| Windows Setup | Media (`setup.exe`, `sources\boot.wim`) | Installation and processing scripts and answer files |
+| Hyper-V | Windows Pro and above | Validation in a Generation 2 virtual machine |
+| Event Viewer, `wevtutil`, `tracerpt` | Windows | Analyzing `setup.etl` event traces |
+
+**Note:** The winget package `Microsoft.OSCDIMG` (version 2.56, publisher: Microsoft) is available as a portable distribution. In production, matching the oscdimg version to the ADK version in use is recommended.
+
+### 3.3 ADK version policy
+
+| Target version | ADK version | Note |
+|---|---|---|
+| Windows 11 26H2, 25H2, 24H2 | **10.1.26100.9457 (September 2026)** and the latest ADK servicing patch | The appropriate version family for this media |
+| Windows 11 26H1 | 10.1.28000.3481 (October 2026) | For 26H1 media only |
+
+Rules:
+
+- When possible, use the ADK that matches the Windows version being serviced. In mixed environments, prefer the ADK appropriate for the newest operating system. Newer Deployment Tools can also run on older Windows versions.
+- Apply the current ADK and servicing patch for the WSIM component in connection with **CVE-2026-25166**.
+- Because of a vulnerability in the third-party KitBuilder component, upgrade to ADK 10.1.26100.2454 (December 2024) or later.
+- 32-bit Windows PE is not supported for Windows 11.
+
+---
+
+## 4. Installation Media Structure
+
+| Path | Purpose |
 |---|---|
-| `setup.exe`, `sources\setupplatform.exe` vb. | Kurulum başlatıcıları |
-| `bootmgr`, `bootmgr.efi`, `bootmgfw.efi` | Windows Önyükleme Yöneticisi (BIOS ve UEFI). İmzalı dosyalardır; değiştirilmemelidir, aksi halde Secure Boot doğrulaması başarısız olur. |
-| `boot\etfsboot.com` | BIOS El Torito önyükleme sektörü (platform `0x00`) |
-| `efi\microsoft\boot\efisys.bin` | UEFI El Torito önyükleme imajı (platform `0xEF`) |
-| `efi\microsoft\boot\efisys_noprompt.bin` | Adından anlaşıldığı üzere "tuşa basın" istemi olmayan UEFI varyantı |
-| `efi\microsoft\boot\cdboot.efi`, `cdboot_noprompt.efi` | CD/DVD için UEFI önyükleyiciler |
-| `boot\bcd`, `efi\microsoft\boot\bcd`, `boot\boot.sdi` | Önyükleme yapılandırma verisi (BCD) ve RAM disk imajı |
-| `sources\boot.wim` | WinPE tabanlı kurulum ortamı |
-| `sources\install.wim` | Windows imajı (6 indeks) |
-| `sources\sxs\` | Özellik-üzerine-talep (Features on Demand) kaynakları: .NET Framework 3.5 (NetFx3) ve Internet Explorer isteğe bağlı paketleri |
-| `support\logging\`, `sources\etwproviders\` | Kurulum ETW sağlayıcılarının yüklenmesi için betikler |
+| `setup.exe`, `sources\setupplatform.exe`, etc. | Setup launchers |
+| `bootmgr`, `bootmgr.efi`, `bootmgfw.efi` | Windows Boot Manager (BIOS and UEFI). These files are signed and must not be modified; otherwise Secure Boot validation will fail. |
+| `boot\etfsboot.com` | BIOS El Torito boot sector (platform `0x00`) |
+| `efi\microsoft\boot\efisys.bin` | UEFI El Torito boot image (platform `0xEF`) |
+| `efi\microsoft\boot\efisys_noprompt.bin` | As its name suggests, the UEFI variant without the "press a key" prompt |
+| `efi\microsoft\boot\cdboot.efi`, `cdboot_noprompt.efi` | UEFI boot loaders for CD/DVD |
+| `boot\bcd`, `efi\microsoft\boot\bcd`, `boot\boot.sdi` | Boot Configuration Data (BCD) and RAM disk image |
+| `sources\boot.wim` | WinPE-based setup environment |
+| `sources\install.wim` | Windows image (6 indexes) |
+| `sources\sxs\` | Features on Demand sources: .NET Framework 3.5 (NetFx3) and optional Internet Explorer packages |
+| `support\logging\`, `sources\etwproviders\` | Scripts for loading setup ETW providers |
 
 ---
 
-## 5. Sürüm İndeksleri ve WIM Mimarisi
+## 5. Edition Indexes and WIM Architecture
 
-### 5.1 WIM biçimi
+### 5.1 WIM format
 
-- **Tek örnek depolama (single-instancing):** Aynı içerik WIM içinde yalnızca bir kez saklanır. Yeni bir indeks eklendiğinde yalnızca yeni dosyalar yazılır (`/Append-Image`).
-- **Çoklu indeks:** Bir WIM dosyası birden çok imaj içerebilir. Her indeksin kendi `NAME`, `EDITIONID`, `BUILD`, `ARCH` ve `LANGUAGES` meta verisi vardır.
-- **Sıkıştırma:** `/Compress` seçenekleri `fast` (varsayılan), `max`, `none` ve `recovery`'dir. `recovery` yalnızca `.esd` hedef dosyasıyla kullanılır.
-- **Dışa aktarma:** `/Export-Image`, değiştirilmiş imajlarda birikmiş kullanılmayan kaynak dosyaları temizler ve imajı yeniden yazar.
-- **ESD:** `install.esd` içeren medyalarda imaj, `/Export-Image` ile WIM biçimine dönüştürülerek servislenebilir.
+- **Single-instance storage:** Identical content is stored only once in the WIM. When a new index is added, only new files are written (`/Append-Image`).
+- **Multiple indexes:** A WIM file can contain multiple images. Each index has its own `NAME`, `EDITIONID`, `BUILD`, `ARCH`, and `LANGUAGES` metadata.
+- **Compression:** `/Compress` options are `fast` (default), `max`, `none`, and `recovery`. `recovery` is used only with an `.esd` destination file.
+- **Export:** `/Export-Image` removes unused resource files accumulated in modified images and rewrites the image.
+- **ESD:** On media containing `install.esd`, the image can be converted to WIM using `/Export-Image` for servicing.
 
-### 5.2 Bu medyadaki indeksler
+### 5.2 Indexes in this media
 
-| Index | NAME | EDITIONID | Yapı | Açılmış boyut (yaklaşık) |
+| Index | NAME | EDITIONID | Build | Uncompressed size (approx.) |
 |---|---|---|---|---|
-| 1 | Windows 11 Home | Core | 10.0.26300 | 23,7 GiB |
-| 2 | Windows 11 Home Single Language | CoreSingleLanguage | 10.0.26300 | 23,7 GiB |
-| 3 | Windows 11 Education | Education | 10.0.26300 | 24,7 GiB |
-| 4 | Windows 11 Pro | Professional | 10.0.26300 | 24,7 GiB |
-| 5 | Windows 11 Pro Education | ProfessionalEducation | 10.0.26300 | 24,7 GiB |
-| 6 | Windows 11 Pro for Workstations | ProfessionalWorkstation | 10.0.26300 | 24,7 GiB |
+| 1 | Windows 11 Home | Core | 10.0.26300 | 23.7 GiB |
+| 2 | Windows 11 Home Single Language | CoreSingleLanguage | 10.0.26300 | 23.7 GiB |
+| 3 | Windows 11 Education | Education | 10.0.26300 | 24.7 GiB |
+| 4 | Windows 11 Pro | Professional | 10.0.26300 | 24.7 GiB |
+| 5 | Windows 11 Pro Education | ProfessionalEducation | 10.0.26300 | 24.7 GiB |
+| 6 | Windows 11 Pro for Workstations | ProfessionalWorkstation | 10.0.26300 | 24.7 GiB |
 
-> **Uyarı:** Bu eşleme yalnızca bu medyaya (26300.9457, tr-TR, x64) aittir. İndeks numaraları sürümler arasında sabit değildir. Bir medyada 1 numaralı indeks Home iken başka bir medyada farklı bir sürüm olabilir. Eşleme her zaman şu komutun çıktısıyla doğrulanmalıdır:
+> **Warning:** This mapping applies only to this media (26300.9457, tr-TR, x64). Index numbers are not fixed across releases. Index 1 may be Home on one image and a different edition on another. Always verify the mapping using the output of:
 >
 > ```
-> dism /Get-ImageInfo /ImageFile:<KAYNAK>\sources\install.wim
+> dism /Get-ImageInfo /ImageFile:<SOURCE>\sources\install.wim
 > ```
 
-Sürüm lisansı ve etkinleştirme, seçilen indekse göre değişebilir. Her indeksin lisans koşulları Microsoft'un ilgili belgelerinden doğrulanmalıdır.
+Edition licensing and activation may vary by selected index. Verify the license terms for each index against the relevant Microsoft documentation.
 
-### 5.3 Sürüm yükseltme davranışı
+### 5.3 Edition upgrade behavior
 
-Mount edilmiş imajda yapılan değişiklikler, imajdaki hedef sürümlerin tümüne uygulanır ve üst sürüme geçişte korunur (Microsoft belgesi).
+Changes made to a mounted image apply to all target editions in the image and are retained when upgrading to a higher edition (Microsoft documentation).
 
 ---
 
-## 6. Çevrimdışı İmaj Servisleme
+## 6. Offline Image Servicing
 
-### 6.1 Yaşam döngüsü
+### 6.1 Lifecycle
 
-1. **Seçim:** `dism /Get-ImageInfo` ile indeks doğrulanır.
-2. **Bağlama:** `/Mount-Image /Index:<n> /MountDir:<boş dizin>`. İnceleme için `/ReadOnly`, ilk bağlama süresini azaltmak için `/Optimize` kullanılabilir. `/Optimize` ilk dizin erişimini yavaşlatabilir.
-3. **Değişiklik:** Dosya, paket, özellik, sürücü, kayıt defteri ve kullanıcı varsayılanları.
-4. **Doğrulama:** `/Get-MountedImageInfo`, `/Get-Features /Format:Table`, `/Get-ProvisionedAppxPackages`.
-5. **Kalıcılaştırma:** `/Commit-Image` (imaj bağlı kalır) veya `/Unmount-Image /Commit`.
-6. **Atma:** `/Unmount-Image /Discard` tüm değişiklikleri siler. Yalnızca bilinçli geri dönüş için kullanılmalıdır.
-7. **Optimizasyon (isteğe bağlı):** `/Cleanup-Image /StartComponentCleanup /ResetBase`, ardından `/Export-Image`. `/ResetBase`, önceki bileşenlerin kaldırılmasını kalıcı olarak engeller.
-8. **Paketleme:** Değiştirilmiş `install.wim`, ISO veya USB kök dizinine yerleştirilir.
+1. **Select:** Verify the index with `dism /Get-ImageInfo`.
+2. **Mount:** `/Mount-Image /Index:<n> /MountDir:<empty directory>`. Use `/ReadOnly` for inspection or `/Optimize` to reduce initial mounting time. `/Optimize` can slow the first directory access.
+3. **Modify:** Files, packages, features, drivers, the registry, and user defaults.
+4. **Verify:** `/Get-MountedImageInfo`, `/Get-Features /Format:Table`, `/Get-ProvisionedAppxPackages`.
+5. **Persist:** `/Commit-Image` (the image remains mounted) or `/Unmount-Image /Commit`.
+6. **Discard:** `/Unmount-Image /Discard` deletes all changes. Use it only when intentionally reverting.
+7. **Optimize (optional):** `/Cleanup-Image /StartComponentCleanup /ResetBase`, followed by `/Export-Image`. `/ResetBase` permanently prevents removal of previous components.
+8. **Package:** Place the modified `install.wim` in the ISO or USB root directory.
 
-### 6.2 Servisleme alanları
+### 6.2 Servicing areas
 
-| Alan | Yöntem | Etki | Not |
+| Area | Method | Effect | Note |
 |---|---|---|---|
-| Hazır (provisioned) uygulamalar | `Get-` ve `Remove-AppxProvisionedPackage` (Dism modülü); `/Get-ProvisionedAppxPackages`, `/Remove-ProvisionedAppxPackage` | Yeni kullanıcı profilleri | Mevcut kullanıcıların uygulamalarını etkilemez (bkz. 10) |
-| Paketler (.cab, .msu) | `/Add-Package`, `/Remove-Package` | Sistem bileşenleri ve güncellemeler | Sıra ve bağımlılık önemlidir. Yanlış sürüm uyumsuzluk yaratır. |
-| Özellikler | `/Enable-Feature /FeatureName:<ad> /All /LimitAccess /Source:<medya>\sources\sxs` | İsteğe bağlı Windows özellikleri | `/LimitAccess`, Windows Update ve WSUS erişimini engeller |
-| Sürücüler | `/Add-Driver /Driver:<yol> /Recurse` | Donanım sürücüleri | Sürücü imzası ve mimari uyumu gerekir |
-| Dil paketleri | Ayrı çevrimdışı dil paketi akışı | Görüntüleme ve yazım dilleri | Hedef sürüm ve mimariyle eşleşmelidir |
-| Varsayılan kullanıcı profili | `reg load` ve `reg unload` ile `Users\Default\NTUSER.DAT` | Yeni kullanıcılar | Mevcut profiller etkilenmez |
-| Makine kayıt defteri | İmajın `Windows\System32\config` kovanları, `reg load` ile | Politikalar ve sistem ayarları | Riskli. Belgelenmiş ayar yolları tercih edilmelidir. |
-| Dosya ve varlıklar | Bağlama dizinine doğrudan kopyalama | Duvar kağıdı, görseller | Windows Kaynak Koruma (WRP) ve güncellemeler dosyaları geri alabilir |
-| Kurulum betikleri | `Windows\Setup\Scripts\` | Kurulum sonrası eylemler | Bkz. 8 |
+| Provisioned applications | `Get-` and `Remove-AppxProvisionedPackage` (Dism module); `/Get-ProvisionedAppxPackages`, `/Remove-ProvisionedAppxPackage` | New user profiles | Does not affect existing users' applications (see 10) |
+| Packages (.cab, .msu) | `/Add-Package`, `/Remove-Package` | System components and updates | Order and dependencies matter. The wrong version can cause incompatibilities. |
+| Features | `/Enable-Feature /FeatureName:<name> /All /LimitAccess /Source:<media>\sources\sxs` | Optional Windows features | `/LimitAccess` prevents access to Windows Update and WSUS |
+| Drivers | `/Add-Driver /Driver:<path> /Recurse` | Hardware drivers | Driver signatures and architecture compatibility are required |
+| Language packs | Separate offline language pack workflow | Display and spelling languages | Must match the target version and architecture |
+| Default user profile | `Users\Default\NTUSER.DAT` using `reg load` and `reg unload` | New users | Existing profiles are unaffected |
+| Machine registry | Image `Windows\System32\config` hives, using `reg load` | Policies and system settings | Risky. Prefer documented setting paths. |
+| Files and assets | Direct copying into the mount directory | Wallpaper, images | Windows Resource Protection (WRP) and updates may restore files |
+| Setup scripts | `Windows\Setup\Scripts\` | Post-installation actions | See 8 |
 
-### 6.3 Risk değerlendirmesi
+### 6.3 Risk assessment
 
-| Risk | Etki | Azaltma |
+| Risk | Impact | Mitigation |
 |---|---|---|
-| Yanlış indeks seçimi | Beklenmeyen sürüm kurulur | `/Get-ImageInfo` ile doğrulama |
-| Yanlış `/Discard` | Tüm değişiklikler kaybolur | Komutu gözden geçirin. Önemli aşamalarda imaj kopyası alın. |
-| Ayrılmamış bağlantı | Sonraki işlemler başarısız olur | `/Get-MountedImageInfo`, `/Remount-Image` |
-| Yetersiz disk alanı | WIM dosyası bozulabilir | Yeterli boş alan. Bozulma halinde imaj yeniden üretilmelidir. |
-| Açık kayıt defteri kovanı | `reg unload` başarısız olur | Regedit kapatılır, ardından kovan boşaltılır |
-| Önyükleme dosyalarının değiştirilmesi | Secure Boot ve önyükleme hatası | Önyükleme dosyalarına dokunulmaz |
-| Uyumsuz ADK veya DISM | Hatalı servisleme | Sürüm eşleştirme (bkz. 3.3) |
-| Lisans ihlali | Hukuki risk | Bkz. 13 |
+| Wrong index selected | An unexpected edition is installed | Verify with `/Get-ImageInfo` |
+| Incorrect `/Discard` | All changes are lost | Review the command. Copy the image at important stages. |
+| Image left mounted | Subsequent operations fail | `/Get-MountedImageInfo`, `/Remount-Image` |
+| Insufficient disk space | WIM file may be corrupted | Ensure sufficient free space. Rebuild the image if corrupted. |
+| Open registry hive | `reg unload` fails | Close Regedit, then unload the hive |
+| Modified boot files | Secure Boot and boot failures | Do not modify boot files |
+| Incompatible ADK or DISM | Incorrect servicing | Match versions (see 3.3) |
+| License violation | Legal risk | See 13 |
 
-### 6.4 Kurtarma komutları
+### 6.4 Recovery commands
 
-- `dism /Get-MountedImageInfo`: Bağlı imajları ve durumlarını listeler.
-- `dism /Remount-Image /MountDir:<dizin>`: Erişilemez hale gelen bağlı imajı yeniden bağlar.
-- `dism /Cleanup-Mountpoints`: Bozulmuş bağlama kaynaklarını temizler. Bağlı imajları ayırmaz ve yeniden bağlanabilir imajları silmez.
+- `dism /Get-MountedImageInfo`: Lists mounted images and their status.
+- `dism /Remount-Image /MountDir:<directory>`: Remounts a mounted image that has become inaccessible.
+- `dism /Cleanup-Mountpoints`: Cleans up corrupted mount resources. It does not unmount mounted images or delete images that can be remounted.
 
 ---
 
-## 7. Önyükleme ve ISO Üretimi
+## 7. Booting and ISO Creation
 
-### 7.1 Önyükleme modeli
+### 7.1 Boot model
 
-- **BIOS:** El Torito girdisi, platform kimliği `0x00`, dosya `boot\etfsboot.com`.
-- **UEFI:** El Torito girdisi, platform kimliği `0xEF`, dosya `efi\microsoft\boot\efisys.bin`.
-- **Çoklu önyükleme:** Tek komutta iki girdi tanımlanır (`-bootdata:2`). Her girdi `p` (platform), `e` (disket emülasyonunu kapatır) ve `b` (önyükleme sektörü dosyası) ile belirtilir.
+- **BIOS:** El Torito entry, platform ID `0x00`, file `boot\etfsboot.com`.
+- **UEFI:** El Torito entry, platform ID `0xEF`, file `efi\microsoft\boot\efisys.bin`.
+- **Multi-boot:** Two entries are defined in a single command (`-bootdata:2`). Each entry uses `p` (platform), `e` (disables floppy emulation), and `b` (boot sector file).
 
-### 7.2 oscdimg parametre referansı
+### 7.2 oscdimg parameter reference
 
-| Parametre | Açıklama |
+| Parameter | Description |
 |---|---|
-| `-m` | Varsayılan imaj boyut sınırını yok sayar. `-maxsize` ile birlikte kullanılamaz. |
-| `-o` | Yinelenen dosyaları MD5 ile karşılaştırır ve her birini yalnızca bir kez kodlar. `-oc` bayt bayt karşılaştırma yapar ve daha yavaştır. |
-| `-u1` | Hem UDF hem ISO 9660 (8.3 adları) yazar. Hedef sistemin uyumluluğuna göre seçilir ve her iki görünümün de test edilmesi önerilir. |
-| `-u2` | Yalnızca UDF yazar. UDF okuyamayan sistemler yalnızca bilgilendirme dosyası görür. |
-| `-udfver102` | UDF 1.02 sürümünü belirtir. |
-| `-l<etiket>` | Birim etiketi. Boşluk içermemelidir. |
-| `-h` | Gizli dosya ve dizinleri dahil eder. |
-| `-g` | Zaman damgalarını UTC olarak kodlar. |
+| `-m` | Ignores the default image size limit. Cannot be used with `-maxsize`. |
+| `-o` | Compares duplicate files using MD5 and encodes each only once. `-oc` compares byte by byte and is slower. |
+| `-u1` | Writes both UDF and ISO 9660 (8.3 names). Choose based on target system compatibility; testing both views is recommended. |
+| `-u2` | Writes UDF only. Systems that cannot read UDF see only an informational file. |
+| `-udfver102` | Specifies UDF version 1.02. |
+| `-l<label>` | Volume label. Must not contain spaces. |
+| `-h` | Includes hidden files and directories. |
+| `-g` | Encodes timestamps in UTC. |
 
-Sözdizimi şablonu (yer tutucularla):
+Syntax template (with placeholders):
 
 ```
-oscdimg -m -o -u2 -udfver102 -bootdata:2#p0,e,b"<KAYNAK>\boot\etfsboot.com"#pEF,e,b"<KAYNAK>\efi\microsoft\boot\efisys.bin" "<KAYNAK>" "<HEDEF>.iso"
+oscdimg -m -o -u2 -udfver102 -bootdata:2#p0,e,b"<SOURCE>\boot\etfsboot.com"#pEF,e,b"<SOURCE>\efi\microsoft\boot\efisys.bin" "<SOURCE>" "<DESTINATION>.iso"
 ```
 
-### 7.3 Dosya sistemi kararı
+### 7.3 File system decision
 
-- `install.wim` (7,26 GiB) klasik ISO 9660 dosya sistemindeki 4 GiB'lik dosya sınırını aşar. Bu nedenle `install.wim` içeren medyada **UDF zorunludur** (`-u1` veya `-u2`).
-- USB medya oluşturulurken FAT32'nin 4 GiB dosya sınırı nedeniyle iki yol vardır:
-  - **NTFS:** Veri bölümü NTFS olarak biçimlendirilir. UEFI önyüklemesi için FAT32 önyükleme bölümü gerekir (çift bölümlü düzen).
-  - **Bölme:** `dism /Split-Image` ile `install.wim`, `.swm` parçalarına ayrılır. Parça boyutu FAT32 sınırının altında seçilmelidir (ör. 4000 MB). Setup, bölünmüş medyadan `setup.exe /InstallFrom:install.swm` ile çalışabilir.
+- `install.wim` (7.26 GiB) exceeds the 4 GiB file limit of classic ISO 9660. Therefore, **UDF is required** for media containing `install.wim` (`-u1` or `-u2`).
+- When creating USB media, FAT32's 4 GiB file limit leaves two options:
+  - **NTFS:** Format the data partition as NTFS. UEFI boot requires a FAT32 boot partition (a dual-partition layout).
+  - **Splitting:** Use `dism /Split-Image` to split `install.wim` into `.swm` parts. Select a part size below the FAT32 limit (e.g., 4000 MB). Setup can run from split media using `setup.exe /InstallFrom:install.swm`.
 
-### 7.4 ISO doğrulama
+### 7.4 ISO validation
 
-- Üretilen ISO'nun SHA-256 özetini kaydedin: `Get-FileHash -Algorithm SHA256 <ISO>`.
-- Sanal makinede BIOS ve UEFI önyüklemesini ayrı ayrı test edin.
-- Medya içindeki `install.wim` için `dism /Get-ImageInfo` çıktısını arşivleyin.
+- Record the SHA-256 hash of the generated ISO: `Get-FileHash -Algorithm SHA256 <ISO>`.
+- Test BIOS and UEFI boot separately in a virtual machine.
+- Archive the `dism /Get-ImageInfo` output for the media's `install.wim`.
 
 ---
 
-## 8. Kurulum Sırasında ve Sonrasında Otomasyon
+## 8. Automation During and After Setup
 
-### 8.1 Yanıt dosyası (unattend.xml)
+### 8.1 Answer file (unattend.xml)
 
-- Windows Setup, yapılandırma geçişlerini (configuration passes) sırayla işler. Başlıca geçişler: `windowsPE`, `offlineServicing`, `generalize`, `specialize`, `auditSystem`, `auditUser` ve `oobeSystem`.
-- `offlineServicing` geçişi, DISM ile çevrimdışı imaja uygulanabilir: `dism /Image:<dizin> /Apply-Unattend:<dosya>`. Bağımlılığı olan paket işlemlerinde doğru sıra bu yolla güvenle yönetilir.
-- Oturum açmadan sonra çalışacak komutlar `FirstLogonCommands` ile tanımlanır. Bu komutlar bir sonraki açılışta tetiklenir. Audit modunda tetiklenmemesi için `Microsoft-Windows-Deployment\Reseal\Mode = Audit` ayarı kullanılır.
-- Microsoft, uzun betiklerin kullanıcının masaüstüne ulaşmasını geciktirebileceği konusunda uyarır. Betikler kısa tutulmalıdır.
+- Windows Setup processes configuration passes in sequence. The main passes are `windowsPE`, `offlineServicing`, `generalize`, `specialize`, `auditSystem`, `auditUser`, and `oobeSystem`.
+- The `offlineServicing` pass can be applied to an offline image using DISM: `dism /Image:<directory> /Apply-Unattend:<file>`. This safely manages the correct order for package operations with dependencies.
+- Commands to run after sign-in are defined using `FirstLogonCommands`. These commands are triggered on the next boot. To prevent them from triggering in audit mode, use `Microsoft-Windows-Deployment\Reseal\Mode = Audit`.
+- Microsoft warns that long-running scripts can delay the user reaching the desktop. Keep scripts short.
 
 ### 8.2 SetupComplete.cmd
 
-- **Konum:** `%WINDIR%\Setup\Scripts\SetupComplete.cmd`
-- **Yetki:** Yerel Sistem (LocalSystem)
-- **Zamanlama:** Microsoft belgesi iki farklı zamanlama tanımlar. "Order of operations" bölümünde kurulum sonrasında ve oturum açma ekranından önce; giriş bölümünde ise masaüstü görüntülendikten hemen sonra çalıştığı belirtilir. Betik her iki durumda da doğru sonuç üretecek şekilde yazılmalıdır (idempotent).
-- **Çıkış kodu:** Setup, betiğin çıkış kodunu denetlemez.
-- **Yeniden başlatma:** Betik içinde `shutdown -r` gibi yeniden başlatma komutları kullanılmamalıdır. Kurulum durumu bozulur ve betik devam ettirilemez.
-- **Etki alanı:** Etki alanına katılan makinelerde, betik tamamlanana kadar etki alanı grup ilkeleri uygulanmaz.
-- **Ürün anahtarı türü:** Belgeye göre OEM ürün anahtarlarıyla yapılan kurulumlarda bu özellik, Enterprise ve Server sürümleri dışında devre dışı kalabilir.
-- **Günlük:** `C:\Windows\Panther\UnattendGC\setupact.log`
+- **Location:** `%WINDIR%\Setup\Scripts\SetupComplete.cmd`
+- **Privileges:** Local System (LocalSystem)
+- **Timing:** Microsoft documentation describes two different timings. The "Order of operations" section says it runs after setup and before the sign-in screen; the introduction says it runs immediately after the desktop is displayed. Write the script so that it produces the correct result in either case (idempotently).
+- **Exit code:** Setup does not check the script's exit code.
+- **Restart:** Do not use restart commands such as `shutdown -r` inside the script. Setup state becomes corrupted and the script cannot resume.
+- **Domain:** On domain-joined machines, domain Group Policy is not applied until the script completes.
+- **Product key type:** According to the documentation, this feature may be disabled for installations using OEM product keys, except on Enterprise and Server editions.
+- **Log:** `C:\Windows\Panther\UnattendGC\setupact.log`
 
 ### 8.3 ErrorHandler.cmd
 
-- **Konum:** `%WINDIR%\Setup\Scripts\ErrorHandler.cmd`
-- Kurulum ciddi bir hatayla durduğunda çalışır. Yerel Sistem yetkisiyle senkron olarak yürütülür ve birden çok kez çağrılabilir. Bu nedenle idempotent yazılmalıdır.
-- Medya dışından `Setup /m:<klasör>` seçeneğiyle de sağlanabilir.
+- **Location:** `%WINDIR%\Setup\Scripts\ErrorHandler.cmd`
+- Runs when setup stops because of a fatal error. It executes synchronously with Local System privileges and may be called more than once. Therefore, it should be idempotent.
+- It can also be supplied from outside the media using `Setup /m:<folder>`.
 
-### 8.4 Sürüme özgü davranışlar
+### 8.4 Edition-specific behavior
 
-- **Windows 11 Home:** İlk kurulumda internet bağlantısı ve Microsoft Hesabı gerektirir (resmi gereksinimler belgesi). Kurulum otomasyonu planlanırken bu davranış dikkate alınmalıdır.
-- **OOBE ve hesap politikaları:** Sürüme göre değişebilir. OOBE davranışını atlatmaya yönelik yöntemler bu belgenin kapsamı dışındadır.
+- **Windows 11 Home:** Requires an internet connection and a Microsoft account during initial setup (official requirements documentation). Account for this when planning setup automation.
+- **OOBE and account policies:** These may vary by edition. Methods for bypassing OOBE behavior are outside the scope of this document.
 
 ---
 
-## 9. Kullanıcı Varsayılanları ve Kayıt Defteri
+## 9. User Defaults and the Registry
 
-### 9.1 Varsayılan kullanıcı profili
+### 9.1 Default user profile
 
-- **Konum:** `C:\Users\Default\NTUSER.DAT`. Çevrimdışı imajda `<bağlama dizini>\Users\Default\NTUSER.DAT`.
-- **Durum:** Varsayılan kullanıcı kovanı Kayıt Defteri'nde varsayılan olarak yüklü değildir. Düzenlemek için `reg load` ile yüklenmeli, işlem bitince `reg unload` ile boşaltılmalıdır.
-- **Kapsam:** Yalnızca yeni oluşturulan kullanıcı profillerini etkiler.
-- **Microsoft yöntemi:** Belgelenmiş yaklaşım, referans makinede profili hazırlayıp `CopyProfile` ile varsayılan profile kopyalamaktır.
-- **Varsayılan uygulamalar:** Windows, kullanıcının ilk oturumunda varsayılan uygulama ilişkilendirmelerini `oemdefaultassociations.xml` dosyasından yükleyebilir (Microsoft belgesi).
+- **Location:** `C:\Users\Default\NTUSER.DAT`. In an offline image: `<mount directory>\Users\Default\NTUSER.DAT`.
+- **Status:** The default user hive is not loaded in the registry by default. To edit it, load it with `reg load` and unload it with `reg unload` when finished.
+- **Scope:** Affects only newly created user profiles.
+- **Microsoft's method:** The documented approach is to prepare the profile on a reference machine and copy it to the default profile using `CopyProfile`.
+- **Default applications:** Windows can load default app associations from `oemdefaultassociations.xml` when the user signs in for the first time (Microsoft documentation).
 
-### 9.2 Referans kayıt defteri anahtarları
+### 9.2 Reference registry keys
 
-Bu tablo başvuru amaçlıdır. Her değer hedef sürümde sanal makinede doğrulanmalıdır.
+This table is for reference. Verify each value on the target version in a virtual machine.
 
-| Ayar | Anahtar | Değer ve anlamı |
+| Setting | Key | Value and meaning |
 |---|---|---|
-| Masaüstü simgesi: Bu Bilgisayar | `HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel` → `{20D04FE0-3AEA-1069-A2D8-08002B30309D}` | `0` = görünür |
-| Masaüstü simgesi: Geri Dönüşüm Kutusu | Aynı anahtar → `{645FF040-5081-101B-9F08-00AA002F954E}` | `0` = görünür |
-| Koyu mod: uygulamalar | `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize` → `AppsUseLightTheme` | `0` = koyu |
-| Koyu mod: sistem | `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize` → `SystemUsesLightTheme` | `0` = koyu |
-| Görev çubuğu: Widgets | `HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced` → `TaskbarDa` | `0` = gizli |
-| Görev çubuğu: Sohbet | `HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced` → `TaskbarMn` | `0` = gizli |
-| Duvar kağıdı | `HKCU\Control Panel\Desktop` → `Wallpaper`, `WallpaperStyle`, `TileWallpaper` | Stil: `0` ortala, `2` uzat, `6` sığdır, `10` doldur, `22` yay |
-| Widgets politikası | `HKLM\SOFTWARE\Policies\Microsoft\Dsh` → `AllowNewsAndInterests` | `0` = kapalı |
+| Desktop icon: This PC | `HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel` → `{20D04FE0-3AEA-1069-A2D8-08002B30309D}` | `0` = visible |
+| Desktop icon: Recycle Bin | Same key → `{645FF040-5081-101B-9F08-00AA002F954E}` | `0` = visible |
+| Dark mode: apps | `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize` → `AppsUseLightTheme` | `0` = dark |
+| Dark mode: system | `HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize` → `SystemUsesLightTheme` | `0` = dark |
+| Taskbar: Widgets | `HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced` → `TaskbarDa` | `0` = hidden |
+| Taskbar: Chat | `HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced` → `TaskbarMn` | `0` = hidden |
+| Wallpaper | `HKCU\Control Panel\Desktop` → `Wallpaper`, `WallpaperStyle`, `TileWallpaper` | Style: `0` center, `2` stretch, `6` fit, `10` fill, `22` span |
+| Widgets policy | `HKLM\SOFTWARE\Policies\Microsoft\Dsh` → `AllowNewsAndInterests` | `0` = off |
 
-Politika anahtarları ve varsayılan davranışlar sürümler arasında değişebilir. Başvuru kaynağı olarak Microsoft'un Policy CSP ve ADMX belgeleri kullanılmalıdır.
+Policy keys and default behavior can vary between versions. Use Microsoft's Policy CSP and ADMX documentation as references.
 
-### 9.3 Yükleme ve boşaltma kuralları
+### 9.3 Loading and unloading rules
 
-- Yükleme: `reg load HKLM\<geçici-ad> "<bağlama dizini>\Users\Default\NTUSER.DAT"`
-- Boşaltma: `reg unload HKLM\<geçici-ad>`
-- Kovan açık kaldığında boşaltma başarısız olur. Kayıt defteri düzenleyicisi pencereleri kapatılmalıdır.
-- Geçici ad benzersiz olmalı ve mevcut bir kovanla çakışmamalıdır.
+- Load: `reg load HKLM\<temporary-name> "<mount directory>\Users\Default\NTUSER.DAT"`
+- Unload: `reg unload HKLM\<temporary-name>`
+- Unloading fails if the hive is still open. Close Registry Editor windows first.
+- The temporary name must be unique and must not conflict with an existing hive.
 
 ---
 
-## 10. Hazır (Provisioned) Uygulamalar
+## 10. Provisioned Applications
 
-### 10.1 Kavram
+### 10.1 Concept
 
-- Hazır uygulamalar, Windows imajına eklenmiş AppX/MSIX paketleridir. Yeni kullanıcı hesapları oluşturulduğunda bu paketler kullanıcıya otomatik olarak yüklenir.
-- Hazır paket kaldırma yalnızca yeni kullanıcılar için etkilidir. Mevcut kullanıcılardaki paketler kaldırılmaz. Kullanıcı bazlı kaldırma için `Remove-AppxPackage` kullanılır.
+- Provisioned applications are AppX/MSIX packages added to a Windows image. When new user accounts are created, these packages are automatically installed for the user.
+- Removing a provisioned package affects only new users. It does not remove packages from existing users. Use `Remove-AppxPackage` for per-user removal.
 
-### 10.2 Komut modeli
+### 10.2 Command model
 
 ```powershell
-# Çevrimdışı imajdaki hazır paketleri listele
-Get-AppxProvisionedPackage -Path <BAĞLAMA_DİZİNİ> | Select-Object DisplayName, PackageName
+# List provisioned packages in the offline image
+Get-AppxProvisionedPackage -Path <MOUNT_DIRECTORY> | Select-Object DisplayName, PackageName
 
-# Tam paket adıyla kaldır
-Remove-AppxProvisionedPackage -Path <BAĞLAMA_DİZİNİ> -PackageName <TAM_PAKET_ADI>
+# Remove by full package name
+Remove-AppxProvisionedPackage -Path <MOUNT_DIRECTORY> -PackageName <FULL_PACKAGE_NAME>
 ```
 
-Ek parametreler: `-LogPath` (varsayılan `%WINDIR%\Logs\Dism\dism.log`) ve `-ScratchDirectory` (yerel bir dizin olmalıdır).
+Additional parameters: `-LogPath` (default `%WINDIR%\Logs\Dism\dism.log`) and `-ScratchDirectory` (must be a local directory).
 
-### 10.3 Operasyonel ilkeler
+### 10.3 Operational principles
 
-- Silmeden önce listeleme yapın ve her paketin sistem bağımlılığını değerlendirin.
-- Joker karakterli eşleşmeler (`*Ad*`) beklenmeyen paketleri de kapsayabilir. Tam `PackageName` değeriyle çalışın.
-- Paket adları sürüme ve dile göre değişebilir. Değerler her hedef imajda yeniden alınmalıdır.
-- Sistem bileşeni niteliğindeki paketler (kabuk, Store altyapısı vb.) kaldırıldığında beklenmeyen davranışlar görülebilir. Her değişiklik sanal makinede test edilmelidir.
+- List packages before removing them and assess each package's system dependencies.
+- Wildcard matches (`*Name*`) may include unexpected packages. Use the full `PackageName` value.
+- Package names can vary by version and language. Retrieve values again for each target image.
+- Removing packages that are system components (the shell, Store infrastructure, etc.) may cause unexpected behavior. Test every change in a virtual machine.
 
-### 10.4 Microsoft Edge ve WebView2 Runtime
+### 10.4 Microsoft Edge and WebView2 Runtime
 
-- Microsoft, Microsoft Edge'i Windows'un temel bileşeni olarak tanımlar ve kaldırılamayacağını belirtir.
-- WebView2 Runtime, Teams ve Office gibi birçok uygulama tarafından kullanılır.
-- Kurulum sırasında Edge veya WebView2 dosyalarının ya da hizmetlerinin silinmesi, kurulum sonrasında kararsızlığa ve uygulama hatalarına yol açabilir. Bu nedenle bu belge Edge veya WebView2 kaldırma yöntemi içermez.
-
----
-
-## 11. Doğrulama
-
-### 11.1 Test ortamı (Hyper-V)
-
-- **Sürüm:** Windows Pro veya üzeri (istemci Hyper-V).
-- **Sanal makine:** Generation 2. Secure Boot, Generation 2 sanal makinelerde varsayılan olarak etkindir.
-- **vTPM:** Windows 11 TPM 2.0 gerektirir. Generation 2 sanal makineye vTPM eklenerek BitLocker ve TPM tabanlı özellikler sınanabilir.
-- **Donanım referansı (Microsoft resmi gereksinimleri):** 64-bit, en az 2 çekirdekli 1 GHz+ işlemci; 4 GB+ RAM; 64 GB+ depolama; DirectX 12 ve WDDM 2.0 sürücü; UEFI Secure Boot destekli firmware; TPM 2.0; 720p (9") ekran.
-
-### 11.2 Kontrol listesi
-
-- [ ] ISO SHA-256 özeti kaydedildi
-- [ ] `install.wim` indeksleri `dism /Get-ImageInfo` ile doğrulandı
-- [ ] BIOS ve UEFI önyüklemesi ayrı ayrı test edildi
-- [ ] Kurulan sürüm ve indeks eşleşiyor: `DISM /Online /Get-CurrentEdition`
-- [ ] `C:\Windows\Panther\UnattendGC\setupact.log` içinde betik eylemleri kayıtlı
-- [ ] Yeni yerel kullanıcıda varsayılan profil ayarları kontrol edildi
-- [ ] Hazır paket durumu `Get-AppxPackage -AllUsers` ile doğrulandı
-- [ ] Secure Boot durumu: `Confirm-SecureBootUEFI`
-- [ ] Cihaz şifreleme durumu: `manage-bde -status`
-- [ ] Windows Update durumu ve yapı numarası kontrol edildi
+- Microsoft describes Microsoft Edge as a core component of Windows and states that it cannot be removed.
+- WebView2 Runtime is used by many applications, including Teams and Office.
+- Deleting Edge or WebView2 files or services during setup can cause instability and application errors after installation. Therefore, this document does not include a method for removing Edge or WebView2.
 
 ---
 
-## 12. Sürüm Yaşam Döngüsü ve Güncellemeler
+## 11. Validation
 
-### 12.1 Windows 11 sürüm durumu
+### 11.1 Test environment (Hyper-V)
 
-Kaynak: Microsoft Learn, Windows 11 sürüm bilgileri (2026-11-19 güncellemesi).
+- **Edition:** Windows Pro or above (client Hyper-V).
+- **Virtual machine:** Generation 2. Secure Boot is enabled by default on Generation 2 virtual machines.
+- **vTPM:** Windows 11 requires TPM 2.0. Adding a vTPM to a Generation 2 virtual machine allows BitLocker and TPM-based features to be tested.
+- **Hardware reference (official Microsoft requirements):** 64-bit, 1 GHz+ processor with at least 2 cores; 4 GB+ RAM; 64 GB+ storage; DirectX 12 and a WDDM 2.0 driver; UEFI firmware with Secure Boot support; TPM 2.0; 720p (9") display.
 
-| Sürüm (yapı) | Yayın (GA) | Home, Pro, Pro Education, Pro for Workstations destek sonu | Enterprise, Education destek sonu | Güncel yapı |
+### 11.2 Checklist
+
+- [ ] ISO SHA-256 hash recorded
+- [ ] `install.wim` indexes verified with `dism /Get-ImageInfo`
+- [ ] BIOS and UEFI boot tested separately
+- [ ] Installed edition matches the index: `DISM /Online /Get-CurrentEdition`
+- [ ] Script actions recorded in `C:\Windows\Panther\UnattendGC\setupact.log`
+- [ ] Default profile settings checked with a new local user
+- [ ] Provisioned package status verified with `Get-AppxPackage -AllUsers`
+- [ ] Secure Boot status: `Confirm-SecureBootUEFI`
+- [ ] Device encryption status: `manage-bde -status`
+- [ ] Windows Update status and build number checked
+
+---
+
+## 12. Release Lifecycle and Updates
+
+### 12.1 Windows 11 release status
+
+Source: Microsoft Learn, Windows 11 release information (updated 2026-11-19).
+
+| Version (build) | Release (GA) | End of support for Home, Pro, Pro Education, Pro for Workstations | End of support for Enterprise, Education | Current build |
 |---|---|---|---|---|
 | 26H2 (26300) | 2026-09-29 | 2028-10-10 | 2029-10-09 | 26300.10075 |
 | 26H1 (28000) | 2026-02-10 | 2028-03-14 | 2029-03-13 | 28000.3620 |
 | 25H2 (26200) | 2025-09-30 | 2027-10-12 | 2028-10-10 | 26200.10075 |
-| 24H2 (26100) | 2024-10-01 | Destek sona erdi | 2027-10-12 | 26100.9974 |
-| 23H2 (22631) | 2023-10-31 | Destek sona erdi | Destek sona erdi | 22631.7714 |
+| 24H2 (26100) | 2024-10-01 | Support ended | 2027-10-12 | 26100.9974 |
+| 23H2 (22631) | 2023-10-31 | Support ended | Support ended | 22631.7714 |
 
-Ek notlar:
+Additional notes:
 
-- Özellik güncellemeleri Home, Pro, Pro for Workstations ve Pro Education için 24 ay, Enterprise ve Education için 36 ay destek sağlar.
-- 26H1 yalnızca 2026'da piyasaya çıkan yeni cihazlar içindir. 24H2 veya 25H2 cihazlarda yerinde yükseltme olarak sunulmaz. IoT Enterprise bu sürümde desteklenmez.
-- Enterprise LTSC 2024 (24H2 temelli) için destek sonu 2029-10-09'dur. IoT Enterprise LTSC 2024 için genişletilmiş destek sonu 2034-10-10'dur.
+- Feature updates receive 24 months of support for Home, Pro, Pro for Workstations, and Pro Education, and 36 months for Enterprise and Education.
+- 26H1 is only for new devices released in 2026. It is not offered as an in-place upgrade on 24H2 or 25H2 devices. IoT Enterprise is not supported on this release.
+- Support for Enterprise LTSC 2024 (based on 24H2) ends on 2029-10-09. Extended support for IoT Enterprise LTSC 2024 ends on 2034-10-10.
 
-### 12.2 26H2 dağıtım modeli
+### 12.2 26H2 deployment model
 
-26H2, 24H2 ve 25H2 ile aynı bakım dalını (servicing branch) paylaşır. 24H2 ve 25H2 cihazlarda geçiş, etkinleştirme paketi (enablement package, eKB) ile yapılır. ISO medyası ise temiz kurulum ve yeniden imaj oluşturma için kullanılır (Windows Insider Blog, Release Preview duyurusu).
+26H2 shares the same servicing branch as 24H2 and 25H2. The transition on 24H2 and 25H2 devices uses an enablement package (eKB). ISO media is used for clean installation and reimaging (Windows Insider Blog, Release Preview announcement).
 
-### 12.3 Çevrimdışı güncelleme
+### 12.3 Offline updates
 
-- Güncelleme paketleri `/Add-Package` ile eklenir. Paketin sürümü, mimarisi ve hedef imaj sürümü eşleşmelidir.
-- Servisleme sonrasında bileşen deposu temizlenebilir: `/Cleanup-Image /StartComponentCleanup`. `/ResetBase` eklenirse önceki bileşen sürümlerine geri dönüş kalıcı olarak kapanır.
-- Güncelleme sonrası yapı numarası, sürüm bilgileri sayfasındaki güncel yapıyla karşılaştırılmalıdır.
-
----
-
-## 13. Güvenlik, Lisans ve Dağıtım Sınırları
-
-- **Kaynak:** Yalnızca Microsoft'un resmi kaynaklarından alınmış medya kullanılmalıdır. SHA-256 özeti resmi yayınla karşılaştırılmalıdır.
-- **Lisans:** Windows, Microsoft Yazılım Lisans Koşulları'na tabidir. Değiştirilmiş medyanın çoğaltılması, dağıtılması ve etkinleştirilmesi bu koşullarla sınırlanabilir. Hukuki değerlendirme gereklidir.
-- **Bu depo:** Bu belgeyi içeren depoda Windows ISO içeriği (`install.wim`, `sources\`, `boot\`, `efi\` vb.) bulunmamalıdır. GitHub dosya başına 100 MiB sınırı uygular. Microsoft ikili dosyalarının yeniden yayımlanması lisans ihlali oluşturabilir.
-- **Güvenlik özellikleri:** Secure Boot, cihaz şifreleme veya BitLocker, Windows Defender ve bellek bütünlüğü devre dışı bırakılmamalıdır.
-- **Güvenlik güncellemeleri:** ADK ve servicing yamaları güncel tutulmalıdır (bkz. 3.3).
-- **Kurumsal alternatif:** Yönetilen cihazlarda imaj düzenleme yerine Windows Autopilot ve Microsoft Intune gibi yönetim çözümleri tercih edilmelidir.
+- Add update packages with `/Add-Package`. The package version, architecture, and target image version must match.
+- After servicing, the component store can be cleaned using `/Cleanup-Image /StartComponentCleanup`. Adding `/ResetBase` permanently prevents rollback to earlier component versions.
+- Compare the post-update build number with the current build on the release information page.
 
 ---
 
-## 14. Günlükler ve Sorun Giderme
+## 13. Security, Licensing, and Distribution Boundaries
 
-### 14.1 Günlük konumları
+- **Source:** Use media obtained only from official Microsoft sources. Compare the SHA-256 hash with the official release.
+- **License:** Windows is subject to the Microsoft Software License Terms. Reproduction, distribution, and activation of modified media may be restricted by those terms. Legal assessment is required.
+- **This repository:** The repository containing this document must not include Windows ISO content (`install.wim`, `sources\`, `boot\`, `efi\`, etc.). GitHub enforces a 100 MiB per-file limit. Republishing Microsoft binaries may violate licensing terms.
+- **Security features:** Do not disable Secure Boot, device encryption or BitLocker, Windows Defender, or memory integrity.
+- **Security updates:** Keep the ADK and servicing patches current (see 3.3).
+- **Enterprise alternative:** For managed devices, prefer management solutions such as Windows Autopilot and Microsoft Intune over image editing.
 
-| Konum | İçerik |
+---
+
+## 14. Logs and Troubleshooting
+
+### 14.1 Log locations
+
+| Location | Contents |
 |---|---|
-| `X:\Windows\Panther\` | Diske erişim öncesi kurulum günlükleri (WinPE) |
-| `%WINDIR%\Panther\` | Disk yapılandırmasından sonraki kurulum eylemleri, `setuperr.log` |
-| `%WINDIR%\Panther\UnattendGC\setupact.log` | SetupComplete ve yanıt dosyası eylemleri |
-| `%WINDIR%\Panther\setup.etl` | Kurulum performans olayları (Olay Görüntüleyici veya `wevtutil qe /lf` ile) |
-| `%WINDIR%\Logs\Dism\dism.log` | DISM varsayılan günlüğü |
-| `%WINDIR%\Inf\setupapi*.log` | PnP sürücü kurulum günlükleri |
-| `%WINDIR%\Minidump.dmp`, `%WINDIR%\Memory.dmp` | Çekirdek hata dökümleri |
+| `X:\Windows\Panther\` | Setup logs before disk access (WinPE) |
+| `%WINDIR%\Panther\` | Setup actions after disk configuration, `setuperr.log` |
+| `%WINDIR%\Panther\UnattendGC\setupact.log` | SetupComplete and answer file actions |
+| `%WINDIR%\Panther\setup.etl` | Setup performance events (using Event Viewer or `wevtutil qe /lf`) |
+| `%WINDIR%\Logs\Dism\dism.log` | Default DISM log |
+| `%WINDIR%\Inf\setupapi*.log` | PnP driver installation logs |
+| `%WINDIR%\Minidump.dmp`, `%WINDIR%\Memory.dmp` | Kernel crash dumps |
 
-### 14.2 Sorun-çözüm matrisi
+### 14.2 Troubleshooting matrix
 
-| Belirti | Olası neden | İlk kontrol |
+| Symptom | Possible cause | First check |
 |---|---|---|
-| `Error: 740` | Yükseltilmiş yetki yok | Yönetici komut istemi |
-| Bağlama başarısız | Hedef dizin boş değil veya korumalı bir klasörde | Boş ve korumalı olmayan dizin |
-| Ayırma başarısız | Dizinde açık dosya veya Gezgin penceresi | Pencereleri kapatın, `/Get-MountedImageInfo` çalıştırın |
-| Bağlı imaj erişilemez | Beklenmeyen kesinti | `/Remount-Image` |
-| ISO üretiminde dosya boyutu hatası | ISO 9660 4 GiB sınırı | UDF kullanın (`-u1` veya `-u2`) |
-| USB'ye `install.wim` kopyalanamıyor | FAT32 4 GiB sınırı | NTFS düzeni veya `/Split-Image` |
-| SetupComplete çalışmadı | Dosya adı `.cmd.txt`, yanlış konum, OEM anahtarı kısıtı | Dosya uzantısı ve `setupact.log` |
-| Varsayılan profil ayarları görünmüyor | Mevcut kullanıcı profili (yalnızca yeni profiller etkilenir) | Yeni yerel kullanıcıyla test |
-| Hazır uygulama hâlâ görünüyor | Mevcut kullanıcı kurulumu veya farklı paket adı | `Get-AppxPackage -AllUsers` |
-| Duvar kağıdı değişmedi | Sürüme özgü dosya yolu | Medyadaki `Windows\Web` altındaki gerçek dosya adları |
-| Önyükleme yapılmıyor | Yanlış platform girdisi, Secure Boot veya UDF uyumsuzluğu | `-bootdata` platform kodları ve sanal makinede Secure Boot durumu |
+| `Error: 740` | No elevated privileges | Administrator command prompt |
+| Mount fails | Target directory is not empty or is in a protected folder | An empty, unprotected directory |
+| Unmount fails | Open file or File Explorer window in the directory | Close windows and run `/Get-MountedImageInfo` |
+| Mounted image inaccessible | Unexpected interruption | `/Remount-Image` |
+| File size error during ISO creation | ISO 9660 4 GiB limit | Use UDF (`-u1` or `-u2`) |
+| Cannot copy `install.wim` to USB | FAT32 4 GiB limit | NTFS layout or `/Split-Image` |
+| SetupComplete did not run | File named `.cmd.txt`, wrong location, or OEM key restriction | File extension and `setupact.log` |
+| Default profile settings do not appear | Existing user profile (only new profiles are affected) | Test with a new local user |
+| Provisioned application still appears | Existing per-user installation or different package name | `Get-AppxPackage -AllUsers` |
+| Wallpaper did not change | Version-specific file path | Actual file names under `Windows\Web` in the media |
+| Boot fails | Incorrect platform entry, Secure Boot, or UDF incompatibility | `-bootdata` platform codes and Secure Boot status in the virtual machine |
 
-**Duvar kağıdı notu:** Windows 11 varsayılan Bloom duvar kağıtlarının `Windows\Web\4K\Wallpaper\Windows` altında bulunduğu üçüncü taraf kaynaklarda belgelenmektedir. Eğitim materyallerindeki `Wallpaper\Windows\img0.jpg` yolu Windows 10 dönemine ait olabilir. Hedef medyada dosya adları doğrulanmalıdır.
+**Wallpaper note:** Third-party sources document that the default Windows 11 Bloom wallpapers are under `Windows\Web\4K\Wallpaper\Windows`. The `Wallpaper\Windows\img0.jpg` path in instructional materials may date from Windows 10. Verify file names on the target media.
 
 ---
 
-## 15. Sözlük
+## 15. Glossary
 
-| Terim | Açıklama |
+| Term | Description |
 |---|---|
-| ADK | Windows Assessment and Deployment Kit. DISM ve oscdimg gibi dağıtım araçlarını içerir. |
-| Commit / Discard | Bağlı imajdaki değişiklikleri kaydetme veya atma |
-| eKB | Enablement package. Mevcut bakım dalına etkinleştirme paketi. |
-| El Torito | CD/DVD önyükleme standardı |
-| Features on Demand (FoD) | İsteğe bağlı Windows özellikleri ve yetenekleri |
-| Hive (kovan) | Kayıt defteri dosyası (ör. `NTUSER.DAT`) |
-| Index | WIM içindeki imaj numarası |
-| ISO 9660 / UDF / Joliet | Optik medya dosya sistemleri |
-| LCU | Latest Cumulative Update. En güncel kümülatif güncelleme. |
-| Mount / Unmount | WIM içeriğini klasöre bağlama veya ayırma |
-| OOBE | Out-of-Box Experience. İlk kurulum deneyimi. |
-| Provisioned package | Yeni kullanıcılar için imaja eklenmiş AppX/MSIX paketi |
-| `sources\sxs` | Yan yana (side-by-side) bileşen deposu |
-| TPM 2.0 / vTPM | Donanım veya sanal güvenilir platform modülü |
-| UEFI / Secure Boot | Firmware standardı ve imzalı önyükleme doğrulaması |
-| WIM / ESD / SWM | Windows imaj biçimleri: sıkıştırılmış imaj ve bölünmüş WIM |
+| ADK | Windows Assessment and Deployment Kit. Includes deployment tools such as DISM and oscdimg. |
+| Commit / Discard | Save or discard changes to a mounted image |
+| eKB | Enablement package. A package that enables features in an existing servicing branch. |
+| El Torito | CD/DVD boot standard |
+| Features on Demand (FoD) | Optional Windows features and capabilities |
+| Hive | Registry file (e.g., `NTUSER.DAT`) |
+| Index | Image number within a WIM |
+| ISO 9660 / UDF / Joliet | Optical media file systems |
+| LCU | Latest Cumulative Update. The most recent cumulative update. |
+| Mount / Unmount | Mount WIM contents in a directory or unmount them |
+| OOBE | Out-of-Box Experience. The initial setup experience. |
+| Provisioned package | AppX/MSIX package added to an image for new users |
+| `sources\sxs` | Side-by-side component store |
+| TPM 2.0 / vTPM | Hardware or virtual Trusted Platform Module |
+| UEFI / Secure Boot | Firmware standard and signed boot verification |
+| WIM / ESD / SWM | Windows image formats: compressed images and split WIM |
 | WinPE | Windows Preinstallation Environment |
-| WRP | Windows Resource Protection. Korumalı sistem dosyaları. |
+| WRP | Windows Resource Protection. Protected system files. |
 
 ---
 
-## 16. Kaynaklar
+## 16. References
 
-- Windows 11 indirme: https://www.microsoft.com/software-download/windows11
-- Windows 11 sürüm bilgileri: https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information
-- Windows 11 gereksinimleri: https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements
-- Windows 11 26H2 Release Preview duyurusu: https://blogs.windows.com/windows-insider/2026/08/27/releasing-windows-11-version-26h2-to-the-release-preview-channel/
-- Windows ADK kurulumu: https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install
-- DISM image management komutları: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-image-management-command-line-options-s14
-- İmajı bağlama ve değiştirme: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/mount-and-modify-a-windows-image-using-dism
-- Çevrimdışı paket ekleme ve kaldırma: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/add-or-remove-packages-offline-using-dism
-- .NET Framework 3.5 (DISM ile çevrimdışı kurulum): https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/deploy-net-framework-35-by-using-deployment-image-servicing-and-management--dism?view=windows-11
-- Oscdimg komut satırı seçenekleri: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/oscdimg-command-line-options
-- Kuruluma özel betik ekleme (SetupComplete, ErrorHandler): https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/add-a-custom-script-to-windows-setup
-- Windows Setup günlük dosyaları: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-setup-log-files-and-event-logs
-- WIM dosyasını bölme: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/split-a-windows-image--wim--file-to-span-across-multiple-dvds?view=windows-11
-- Varsayılan kullanıcı profili (CopyProfile): https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/customize-the-default-user-profile-by-using-copyprofile?view=windows-11
+- Windows 11 download: https://www.microsoft.com/software-download/windows11
+- Windows 11 release information: https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information
+- Windows 11 requirements: https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements
+- Windows 11 26H2 Release Preview announcement: https://blogs.windows.com/windows-insider/2026/08/27/releasing-windows-11-version-26h2-to-the-release-preview-channel/
+- Install the Windows ADK: https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install
+- DISM image management commands: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-image-management-command-line-options-s14
+- Mount and modify an image: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/mount-and-modify-a-windows-image-using-dism
+- Add or remove packages offline: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/add-or-remove-packages-offline-using-dism
+- .NET Framework 3.5 (offline installation with DISM): https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/deploy-net-framework-35-by-using-deployment-image-servicing-and-management--dism?view=windows-11
+- Oscdimg command-line options: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/oscdimg-command-line-options
+- Add custom scripts to Windows Setup (SetupComplete, ErrorHandler): https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/add-a-custom-script-to-windows-setup
+- Windows Setup log files: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-setup-log-files-and-event-logs
+- Split a WIM file: https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/split-a-windows-image--wim--file-to-span-across-multiple-dvds?view=windows-11
+- Default user profile (CopyProfile): https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/customize-the-default-user-profile-by-using-copyprofile?view=windows-11
 - Remove-AppxProvisionedPackage: https://learn.microsoft.com/en-us/powershell/module/dism/remove-appxprovisionedpackage
-- Hyper-V Generation 2 güvenlik özellikleri: https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/generation-2-virtual-machine-security-features
+- Hyper-V Generation 2 security features: https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/generation-2-virtual-machine-security-features
 
 ---
 
-*Belge sürümü: 2.0 · Son gözden geçirme: 22 Kasım 2026*
+*Document version: 2.0 · Last reviewed: November 22, 2026*

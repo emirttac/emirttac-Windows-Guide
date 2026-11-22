@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5–6. WIM Architecture and Servicing — Windows Customization Guide by emirttac</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left"><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menu">☰</button><a class="site-title" href="index.html">Windows Customization Guide by emirttac</a></div>
+    <div class="header-right"><a class="language-link" href="../servisleme.html" lang="tr" hreflang="tr">Türkçe</a><button id="theme-toggle" class="theme-toggle" type="button">Light theme</button></div>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Sections"><p class="nav-group-title">Sections</p><ul class="nav-list"><li><a class="nav-link" href="index.html">1–2. Overview and Scope</a></li><li><a class="nav-link" href="medya-ve-araclar.html">3–4. Prerequisites and Media Structure</a></li><li><a class="nav-link active" href="servisleme.html" aria-current="page">5–6. WIM Architecture and Servicing</a></li><li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Booting, ISO, and Automation</a></li><li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Registry and Applications</a></li><li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Validation, Lifecycle, and Licensing</a></li><li><a class="nav-link" href="sorun-giderme.html">14–16. Troubleshooting, Glossary, and References</a></li></ul></nav>
+    <main class="content">
+      
+      <div class="content-inner">
+        <h1>WIM Architecture and Servicing</h1>
+<h2 id="wim-mimarisi">5. Edition Indexes and WIM Architecture</h2>
+<h3 id="bolum-5-1">5.1 WIM format</h3>
+<ul>
+<li><strong>Single-instance storage:</strong> Identical content is stored only once in the WIM. When a new index is added, only new files are written (<code>/Append-Image</code>).</li>
+<li><strong>Multiple indexes:</strong> A WIM file can contain multiple images. Each index has its own <code>NAME</code>, <code>EDITIONID</code>, <code>BUILD</code>, <code>ARCH</code>, and <code>LANGUAGES</code> metadata.</li>
+<li><strong>Compression:</strong> <code>/Compress</code> options are <code>fast</code> (default), <code>max</code>, <code>none</code>, and <code>recovery</code>. <code>recovery</code> is used only with an <code>.esd</code> destination file.</li>
+<li><strong>Export:</strong> <code>/Export-Image</code> removes unused resource files accumulated in modified images and rewrites the image.</li>
+<li><strong>ESD:</strong> On media containing <code>install.esd</code>, the image can be converted to WIM using <code>/Export-Image</code> for servicing.</li>
+</ul>
+<h3 id="medya-indeksleri">5.2 Indexes in this media</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Index</th>
+<th>NAME</th>
+<th>EDITIONID</th>
+<th>Build</th>
+<th>Uncompressed size (approx.)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Windows 11 Home</td>
+<td>Core</td>
+<td>10.0.26300</td>
+<td>23.7 GiB</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Windows 11 Home Single Language</td>
+<td>CoreSingleLanguage</td>
+<td>10.0.26300</td>
+<td>23.7 GiB</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Windows 11 Education</td>
+<td>Education</td>
+<td>10.0.26300</td>
+<td>24.7 GiB</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Windows 11 Pro</td>
+<td>Professional</td>
+<td>10.0.26300</td>
+<td>24.7 GiB</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Windows 11 Pro Education</td>
+<td>ProfessionalEducation</td>
+<td>10.0.26300</td>
+<td>24.7 GiB</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Windows 11 Pro for Workstations</td>
+<td>ProfessionalWorkstation</td>
+<td>10.0.26300</td>
+<td>24.7 GiB</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>Warning:</strong> This mapping applies only to this media (26300.9457, tr-TR, x64). Index numbers are not fixed across releases. Index 1 may be Home on one image and a different edition on another. Always verify the mapping using the output of:</p>
+<pre><code>dism /Get-ImageInfo /ImageFile:&lt;SOURCE&gt;\sources\install.wim
+</code></pre>
+</blockquote>
+<p>Edition licensing and activation may vary by selected index. Verify the license terms for each index against the relevant Microsoft documentation.</p>
+<h3 id="bolum-5-3">5.3 Edition upgrade behavior</h3>
+<p>Changes made to a mounted image apply to all target editions in the image and are retained when upgrading to a higher edition (Microsoft documentation).</p>
+<hr />
+<h2 id="cevrimdisi-servisleme">6. Offline Image Servicing</h2>
+<h3 id="yasam-dongusu">6.1 Lifecycle</h3>
+<ol>
+<li><strong>Select:</strong> Verify the index with <code>dism /Get-ImageInfo</code>.</li>
+<li><strong>Mount:</strong> <code>/Mount-Image /Index:&lt;n&gt; /MountDir:&lt;empty directory&gt;</code>. Use <code>/ReadOnly</code> for inspection or <code>/Optimize</code> to reduce initial mounting time. <code>/Optimize</code> can slow the first directory access.</li>
+<li><strong>Modify:</strong> Files, packages, features, drivers, the registry, and user defaults.</li>
+<li><strong>Verify:</strong> <code>/Get-MountedImageInfo</code>, <code>/Get-Features /Format:Table</code>, <code>/Get-ProvisionedAppxPackages</code>.</li>
+<li><strong>Persist:</strong> <code>/Commit-Image</code> (the image remains mounted) or <code>/Unmount-Image /Commit</code>.</li>
+<li><strong>Discard:</strong> <code>/Unmount-Image /Discard</code> deletes all changes. Use it only when intentionally reverting.</li>
+<li><strong>Optimize (optional):</strong> <code>/Cleanup-Image /StartComponentCleanup /ResetBase</code>, followed by <code>/Export-Image</code>. <code>/ResetBase</code> permanently prevents removal of previous components.</li>
+<li><strong>Package:</strong> Place the modified <code>install.wim</code> in the ISO or USB root directory.</li>
+</ol>
+<h3 id="servisleme-alanlari">6.2 Servicing areas</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Method</th>
+<th>Effect</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Provisioned applications</td>
+<td><code>Get-</code> and <code>Remove-AppxProvisionedPackage</code> (Dism module); <code>/Get-ProvisionedAppxPackages</code>, <code>/Remove-ProvisionedAppxPackage</code></td>
+<td>New user profiles</td>
+<td>Does not affect existing users' applications (see 10)</td>
+</tr>
+<tr>
+<td>Packages (.cab, .msu)</td>
+<td><code>/Add-Package</code>, <code>/Remove-Package</code></td>
+<td>System components and updates</td>
+<td>Order and dependencies matter. The wrong version can cause incompatibilities.</td>
+</tr>
+<tr>
+<td>Features</td>
+<td><code>/Enable-Feature /FeatureName:&lt;name&gt; /All /LimitAccess /Source:&lt;media&gt;\sources\sxs</code></td>
+<td>Optional Windows features</td>
+<td><code>/LimitAccess</code> prevents access to Windows Update and WSUS</td>
+</tr>
+<tr>
+<td>Drivers</td>
+<td><code>/Add-Driver /Driver:&lt;path&gt; /Recurse</code></td>
+<td>Hardware drivers</td>
+<td>Driver signatures and architecture compatibility are required</td>
+</tr>
+<tr>
+<td>Language packs</td>
+<td>Separate offline language pack workflow</td>
+<td>Display and spelling languages</td>
+<td>Must match the target version and architecture</td>
+</tr>
+<tr>
+<td>Default user profile</td>
+<td><code>Users\Default\NTUSER.DAT</code> using <code>reg load</code> and <code>reg unload</code></td>
+<td>New users</td>
+<td>Existing profiles are unaffected</td>
+</tr>
+<tr>
+<td>Machine registry</td>
+<td>Image <code>Windows\System32\config</code> hives, using <code>reg load</code></td>
+<td>Policies and system settings</td>
+<td>Risky. Prefer documented setting paths.</td>
+</tr>
+<tr>
+<td>Files and assets</td>
+<td>Direct copying into the mount directory</td>
+<td>Wallpaper, images</td>
+<td>Windows Resource Protection (WRP) and updates may restore files</td>
+</tr>
+<tr>
+<td>Setup scripts</td>
+<td><code>Windows\Setup\Scripts\</code></td>
+<td>Post-installation actions</td>
+<td>See 8</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="riskler">6.3 Risk assessment</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Impact</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wrong index selected</td>
+<td>An unexpected edition is installed</td>
+<td>Verify with <code>/Get-ImageInfo</code></td>
+</tr>
+<tr>
+<td>Incorrect <code>/Discard</code></td>
+<td>All changes are lost</td>
+<td>Review the command. Copy the image at important stages.</td>
+</tr>
+<tr>
+<td>Image left mounted</td>
+<td>Subsequent operations fail</td>
+<td><code>/Get-MountedImageInfo</code>, <code>/Remount-Image</code></td>
+</tr>
+<tr>
+<td>Insufficient disk space</td>
+<td>WIM file may be corrupted</td>
+<td>Ensure sufficient free space. Rebuild the image if corrupted.</td>
+</tr>
+<tr>
+<td>Open registry hive</td>
+<td><code>reg unload</code> fails</td>
+<td>Close Regedit, then unload the hive</td>
+</tr>
+<tr>
+<td>Modified boot files</td>
+<td>Secure Boot and boot failures</td>
+<td>Do not modify boot files</td>
+</tr>
+<tr>
+<td>Incompatible ADK or DISM</td>
+<td>Incorrect servicing</td>
+<td>Match versions (see 3.3)</td>
+</tr>
+<tr>
+<td>License violation</td>
+<td>Legal risk</td>
+<td>See 13</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="kurtarma">6.4 Recovery commands</h3>
+<ul>
+<li><code>dism /Get-MountedImageInfo</code>: Lists mounted images and their status.</li>
+<li><code>dism /Remount-Image /MountDir:&lt;directory&gt;</code>: Remounts a mounted image that has become inaccessible.</li>
+<li><code>dism /Cleanup-Mountpoints</code>: Cleans up corrupted mount resources. It does not unmount mounted images or delete images that can be remounted.</li>
+</ul>
+<hr />
+        <nav class="pager" aria-label="Page navigation"><a class="pager-link prev" href="medya-ve-araclar.html"><span class="pager-label">← Previous</span><span class="pager-title">3–4. Prerequisites and Media Structure</span></a><a class="pager-link next" href="iso-ve-otomasyon.html"><span class="pager-label">Next →</span><span class="pager-title">7–8. Booting, ISO, and Automation</span></a></nav>
+        <footer class="site-footer">Document version: 2.0 · Last reviewed: November 22, 2026</footer>
+      </div>
+    </main>
+  </div>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

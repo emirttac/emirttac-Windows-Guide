@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>14–16. Troubleshooting, Glossary, and References — Windows Customization Guide by emirttac</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left"><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menu">☰</button><a class="site-title" href="index.html">Windows Customization Guide by emirttac</a></div>
+    <div class="header-right"><a class="language-link" href="../sorun-giderme.html" lang="tr" hreflang="tr">Türkçe</a><button id="theme-toggle" class="theme-toggle" type="button">Light theme</button></div>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Sections"><p class="nav-group-title">Sections</p><ul class="nav-list"><li><a class="nav-link" href="index.html">1–2. Overview and Scope</a></li><li><a class="nav-link" href="medya-ve-araclar.html">3–4. Prerequisites and Media Structure</a></li><li><a class="nav-link" href="servisleme.html">5–6. WIM Architecture and Servicing</a></li><li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Booting, ISO, and Automation</a></li><li><a class="nav-link" href="kayit-defteri-ve-uygulamalar.html">9–10. Registry and Applications</a></li><li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Validation, Lifecycle, and Licensing</a></li><li><a class="nav-link active" href="sorun-giderme.html" aria-current="page">14–16. Troubleshooting, Glossary, and References</a></li></ul></nav>
+    <main class="content">
+      
+      <div class="content-inner">
+        <h1>Troubleshooting, Glossary, and References</h1>
+<h2 id="gunlukler">14. Logs and Troubleshooting</h2>
+<h3 id="bolum-14-1">14.1 Log locations</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>X:\Windows\Panther\</code></td>
+<td>Setup logs before disk access (WinPE)</td>
+</tr>
+<tr>
+<td><code>%WINDIR%\Panther\</code></td>
+<td>Setup actions after disk configuration, <code>setuperr.log</code></td>
+</tr>
+<tr>
+<td><code>%WINDIR%\Panther\UnattendGC\setupact.log</code></td>
+<td>SetupComplete and answer file actions</td>
+</tr>
+<tr>
+<td><code>%WINDIR%\Panther\setup.etl</code></td>
+<td>Setup performance events (using Event Viewer or <code>wevtutil qe /lf</code>)</td>
+</tr>
+<tr>
+<td><code>%WINDIR%\Logs\Dism\dism.log</code></td>
+<td>Default DISM log</td>
+</tr>
+<tr>
+<td><code>%WINDIR%\Inf\setupapi*.log</code></td>
+<td>PnP driver installation logs</td>
+</tr>
+<tr>
+<td><code>%WINDIR%\Minidump.dmp</code>, <code>%WINDIR%\Memory.dmp</code></td>
+<td>Kernel crash dumps</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="sorun-matrisi">14.2 Troubleshooting matrix</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Possible cause</th>
+<th>First check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Error: 740</code></td>
+<td>No elevated privileges</td>
+<td>Administrator command prompt</td>
+</tr>
+<tr>
+<td>Mount fails</td>
+<td>Target directory is not empty or is in a protected folder</td>
+<td>An empty, unprotected directory</td>
+</tr>
+<tr>
+<td>Unmount fails</td>
+<td>Open file or File Explorer window in the directory</td>
+<td>Close windows and run <code>/Get-MountedImageInfo</code></td>
+</tr>
+<tr>
+<td>Mounted image inaccessible</td>
+<td>Unexpected interruption</td>
+<td><code>/Remount-Image</code></td>
+</tr>
+<tr>
+<td>File size error during ISO creation</td>
+<td>ISO 9660 4 GiB limit</td>
+<td>Use UDF (<code>-u1</code> or <code>-u2</code>)</td>
+</tr>
+<tr>
+<td>Cannot copy <code>install.wim</code> to USB</td>
+<td>FAT32 4 GiB limit</td>
+<td>NTFS layout or <code>/Split-Image</code></td>
+</tr>
+<tr>
+<td>SetupComplete did not run</td>
+<td>File named <code>.cmd.txt</code>, wrong location, or OEM key restriction</td>
+<td>File extension and <code>setupact.log</code></td>
+</tr>
+<tr>
+<td>Default profile settings do not appear</td>
+<td>Existing user profile (only new profiles are affected)</td>
+<td>Test with a new local user</td>
+</tr>
+<tr>
+<td>Provisioned application still appears</td>
+<td>Existing per-user installation or different package name</td>
+<td><code>Get-AppxPackage -AllUsers</code></td>
+</tr>
+<tr>
+<td>Wallpaper did not change</td>
+<td>Version-specific file path</td>
+<td>Actual file names under <code>Windows\Web</code> in the media</td>
+</tr>
+<tr>
+<td>Boot fails</td>
+<td>Incorrect platform entry, Secure Boot, or UDF incompatibility</td>
+<td><code>-bootdata</code> platform codes and Secure Boot status in the virtual machine</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Wallpaper note:</strong> Third-party sources document that the default Windows 11 Bloom wallpapers are under <code>Windows\Web\4K\Wallpaper\Windows</code>. The <code>Wallpaper\Windows\img0.jpg</code> path in instructional materials may date from Windows 10. Verify file names on the target media.</p>
+<hr />
+<h2 id="sozluk">15. Glossary</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADK</td>
+<td>Windows Assessment and Deployment Kit. Includes deployment tools such as DISM and oscdimg.</td>
+</tr>
+<tr>
+<td>Commit / Discard</td>
+<td>Save or discard changes to a mounted image</td>
+</tr>
+<tr>
+<td>eKB</td>
+<td>Enablement package. A package that enables features in an existing servicing branch.</td>
+</tr>
+<tr>
+<td>El Torito</td>
+<td>CD/DVD boot standard</td>
+</tr>
+<tr>
+<td>Features on Demand (FoD)</td>
+<td>Optional Windows features and capabilities</td>
+</tr>
+<tr>
+<td>Hive</td>
+<td>Registry file (e.g., <code>NTUSER.DAT</code>)</td>
+</tr>
+<tr>
+<td>Index</td>
+<td>Image number within a WIM</td>
+</tr>
+<tr>
+<td>ISO 9660 / UDF / Joliet</td>
+<td>Optical media file systems</td>
+</tr>
+<tr>
+<td>LCU</td>
+<td>Latest Cumulative Update. The most recent cumulative update.</td>
+</tr>
+<tr>
+<td>Mount / Unmount</td>
+<td>Mount WIM contents in a directory or unmount them</td>
+</tr>
+<tr>
+<td>OOBE</td>
+<td>Out-of-Box Experience. The initial setup experience.</td>
+</tr>
+<tr>
+<td>Provisioned package</td>
+<td>AppX/MSIX package added to an image for new users</td>
+</tr>
+<tr>
+<td><code>sources\sxs</code></td>
+<td>Side-by-side component store</td>
+</tr>
+<tr>
+<td>TPM 2.0 / vTPM</td>
+<td>Hardware or virtual Trusted Platform Module</td>
+</tr>
+<tr>
+<td>UEFI / Secure Boot</td>
+<td>Firmware standard and signed boot verification</td>
+</tr>
+<tr>
+<td>WIM / ESD / SWM</td>
+<td>Windows image formats: compressed images and split WIM</td>
+</tr>
+<tr>
+<td>WinPE</td>
+<td>Windows Preinstallation Environment</td>
+</tr>
+<tr>
+<td>WRP</td>
+<td>Windows Resource Protection. Protected system files.</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="kaynaklar">16. References</h2>
+<ul>
+<li><a href="https://www.microsoft.com/software-download/windows11">Windows 11 download</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information">Windows 11 release information</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows/whats-new/windows-11-requirements">Windows 11 requirements</a></li>
+<li><a href="https://blogs.windows.com/windows-insider/2026/08/27/releasing-windows-11-version-26h2-to-the-release-preview-channel/">Windows 11 26H2 Release Preview announcement</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install">Install the Windows ADK</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-image-management-command-line-options-s14">DISM image management commands</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/mount-and-modify-a-windows-image-using-dism">Mount and modify an image</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/add-or-remove-packages-offline-using-dism">Add or remove packages offline</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/deploy-net-framework-35-by-using-deployment-image-servicing-and-management--dism?view=windows-11">.NET Framework 3.5 (offline installation with DISM)</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/oscdimg-command-line-options">Oscdimg command-line options</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/add-a-custom-script-to-windows-setup">Add custom scripts to Windows Setup (SetupComplete, ErrorHandler)</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-setup-log-files-and-event-logs">Windows Setup log files</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/split-a-windows-image--wim--file-to-span-across-multiple-dvds?view=windows-11">Split a WIM file</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/customize-the-default-user-profile-by-using-copyprofile?view=windows-11">Default user profile (CopyProfile)</a></li>
+<li><a href="https://learn.microsoft.com/en-us/powershell/module/dism/remove-appxprovisionedpackage">Remove-AppxProvisionedPackage</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/generation-2-virtual-machine-security-features">Hyper-V Generation 2 security features</a></li>
+</ul>
+<hr />
+        <nav class="pager" aria-label="Page navigation"><a class="pager-link prev" href="dogrulama-ve-lisans.html"><span class="pager-label">← Previous</span><span class="pager-title">11–13. Validation, Lifecycle, and Licensing</span></a></nav>
+        <footer class="site-footer">Document version: 2.0 · Last reviewed: November 22, 2026</footer>
+      </div>
+    </main>
+  </div>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

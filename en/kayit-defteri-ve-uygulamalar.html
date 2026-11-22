@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>9–10. Registry and Applications — Windows Customization Guide by emirttac</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left"><button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menu">☰</button><a class="site-title" href="index.html">Windows Customization Guide by emirttac</a></div>
+    <div class="header-right"><a class="language-link" href="../kayit-defteri-ve-uygulamalar.html" lang="tr" hreflang="tr">Türkçe</a><button id="theme-toggle" class="theme-toggle" type="button">Light theme</button></div>
+  </header>
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Sections"><p class="nav-group-title">Sections</p><ul class="nav-list"><li><a class="nav-link" href="index.html">1–2. Overview and Scope</a></li><li><a class="nav-link" href="medya-ve-araclar.html">3–4. Prerequisites and Media Structure</a></li><li><a class="nav-link" href="servisleme.html">5–6. WIM Architecture and Servicing</a></li><li><a class="nav-link" href="iso-ve-otomasyon.html">7–8. Booting, ISO, and Automation</a></li><li><a class="nav-link active" href="kayit-defteri-ve-uygulamalar.html" aria-current="page">9–10. Registry and Applications</a></li><li><a class="nav-link" href="dogrulama-ve-lisans.html">11–13. Validation, Lifecycle, and Licensing</a></li><li><a class="nav-link" href="sorun-giderme.html">14–16. Troubleshooting, Glossary, and References</a></li></ul></nav>
+    <main class="content">
+      
+      <div class="content-inner">
+        <h1>Registry and Applications</h1>
+<h2 id="kayit-defteri">9. User Defaults and the Registry</h2>
+<h3 id="bolum-9-1">9.1 Default user profile</h3>
+<ul>
+<li><strong>Location:</strong> <code>C:\Users\Default\NTUSER.DAT</code>. In an offline image: <code>&lt;mount directory&gt;\Users\Default\NTUSER.DAT</code>.</li>
+<li><strong>Status:</strong> The default user hive is not loaded in the registry by default. To edit it, load it with <code>reg load</code> and unload it with <code>reg unload</code> when finished.</li>
+<li><strong>Scope:</strong> Affects only newly created user profiles.</li>
+<li><strong>Microsoft's method:</strong> The documented approach is to prepare the profile on a reference machine and copy it to the default profile using <code>CopyProfile</code>.</li>
+<li><strong>Default applications:</strong> Windows can load default app associations from <code>oemdefaultassociations.xml</code> when the user signs in for the first time (Microsoft documentation).</li>
+</ul>
+<h3 id="referans-anahtarlar">9.2 Reference registry keys</h3>
+<p>This table is for reference. Verify each value on the target version in a virtual machine.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Key</th>
+<th>Value and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Desktop icon: This PC</td>
+<td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel</code> → <code>{20D04FE0-3AEA-1069-A2D8-08002B30309D}</code></td>
+<td><code>0</code> = visible</td>
+</tr>
+<tr>
+<td>Desktop icon: Recycle Bin</td>
+<td>Same key → <code>{645FF040-5081-101B-9F08-00AA002F954E}</code></td>
+<td><code>0</code> = visible</td>
+</tr>
+<tr>
+<td>Dark mode: apps</td>
+<td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize</code> → <code>AppsUseLightTheme</code></td>
+<td><code>0</code> = dark</td>
+</tr>
+<tr>
+<td>Dark mode: system</td>
+<td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize</code> → <code>SystemUsesLightTheme</code></td>
+<td><code>0</code> = dark</td>
+</tr>
+<tr>
+<td>Taskbar: Widgets</td>
+<td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced</code> → <code>TaskbarDa</code></td>
+<td><code>0</code> = hidden</td>
+</tr>
+<tr>
+<td>Taskbar: Chat</td>
+<td><code>HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced</code> → <code>TaskbarMn</code></td>
+<td><code>0</code> = hidden</td>
+</tr>
+<tr>
+<td>Wallpaper</td>
+<td><code>HKCU\Control Panel\Desktop</code> → <code>Wallpaper</code>, <code>WallpaperStyle</code>, <code>TileWallpaper</code></td>
+<td>Style: <code>0</code> center, <code>2</code> stretch, <code>6</code> fit, <code>10</code> fill, <code>22</code> span</td>
+</tr>
+<tr>
+<td>Widgets policy</td>
+<td><code>HKLM\SOFTWARE\Policies\Microsoft\Dsh</code> → <code>AllowNewsAndInterests</code></td>
+<td><code>0</code> = off</td>
+</tr>
+</tbody>
+</table></div>
+<p>Policy keys and default behavior can vary between versions. Use Microsoft's Policy CSP and ADMX documentation as references.</p>
+<h3 id="yukleme-bosaltma">9.3 Loading and unloading rules</h3>
+<ul>
+<li>Load: <code>reg load HKLM\&lt;temporary-name&gt; "&lt;mount directory&gt;\Users\Default\NTUSER.DAT"</code></li>
+<li>Unload: <code>reg unload HKLM\&lt;temporary-name&gt;</code></li>
+<li>Unloading fails if the hive is still open. Close Registry Editor windows first.</li>
+<li>The temporary name must be unique and must not conflict with an existing hive.</li>
+</ul>
+<hr />
+<h2 id="hazir-uygulamalar">10. Provisioned Applications</h2>
+<h3 id="bolum-10-1">10.1 Concept</h3>
+<ul>
+<li>Provisioned applications are AppX/MSIX packages added to a Windows image. When new user accounts are created, these packages are automatically installed for the user.</li>
+<li>Removing a provisioned package affects only new users. It does not remove packages from existing users. Use <code>Remove-AppxPackage</code> for per-user removal.</li>
+</ul>
+<h3 id="komut-modeli">10.2 Command model</h3>
+<pre><code class="language-powershell"># List provisioned packages in the offline image
+Get-AppxProvisionedPackage -Path &lt;MOUNT_DIRECTORY&gt; | Select-Object DisplayName, PackageName
+
+# Remove by full package name
+Remove-AppxProvisionedPackage -Path &lt;MOUNT_DIRECTORY&gt; -PackageName &lt;FULL_PACKAGE_NAME&gt;
+</code></pre>
+<p>Additional parameters: <code>-LogPath</code> (default <code>%WINDIR%\Logs\Dism\dism.log</code>) and <code>-ScratchDirectory</code> (must be a local directory).</p>
+<h3 id="bolum-10-3">10.3 Operational principles</h3>
+<ul>
+<li>List packages before removing them and assess each package's system dependencies.</li>
+<li>Wildcard matches (<code>*Name*</code>) may include unexpected packages. Use the full <code>PackageName</code> value.</li>
+<li>Package names can vary by version and language. Retrieve values again for each target image.</li>
+<li>Removing packages that are system components (the shell, Store infrastructure, etc.) may cause unexpected behavior. Test every change in a virtual machine.</li>
+</ul>
+<h3 id="edge-webview2">10.4 Microsoft Edge and WebView2 Runtime</h3>
+<ul>
+<li>Microsoft describes Microsoft Edge as a core component of Windows and states that it cannot be removed.</li>
+<li>WebView2 Runtime is used by many applications, including Teams and Office.</li>
+<li>Deleting Edge or WebView2 files or services during setup can cause instability and application errors after installation. Therefore, this document does not include a method for removing Edge or WebView2.</li>
+</ul>
+<hr />
+        <nav class="pager" aria-label="Page navigation"><a class="pager-link prev" href="iso-ve-otomasyon.html"><span class="pager-label">← Previous</span><span class="pager-title">7–8. Booting, ISO, and Automation</span></a><a class="pager-link next" href="dogrulama-ve-lisans.html"><span class="pager-label">Next →</span><span class="pager-title">11–13. Validation, Lifecycle, and Licensing</span></a></nav>
+        <footer class="site-footer">Document version: 2.0 · Last reviewed: November 22, 2026</footer>
+      </div>
+    </main>
+  </div>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

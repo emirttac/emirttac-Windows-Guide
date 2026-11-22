@@ -1,5 +1,6 @@
 (function () {
   var root = document.documentElement;
+  var isEnglish = root.lang === "en";
   var themeBtn = document.getElementById("theme-toggle");
   var savedTheme;
   try {
@@ -13,7 +14,7 @@
 
   function updateThemeLabel() {
     var isLight = root.getAttribute("data-theme") === "light";
-    var label = isLight ? "Koyu temaya geç" : "Açık temaya geç";
+    var label = isEnglish ? (isLight ? "Switch to dark theme" : "Switch to light theme") : (isLight ? "Koyu temaya geç" : "Açık temaya geç");
     themeBtn.setAttribute("aria-label", label);
     themeBtn.title = label;
     themeBtn.innerHTML = isLight
@@ -39,8 +40,8 @@
     var github = document.createElement("a");
     github.className = "github-link";
     github.href = "https://github.com/emirttac/emirttac-Windows-Guide";
-    github.setAttribute("aria-label", "GitHub deposu");
-    github.title = "GitHub deposu";
+    github.setAttribute("aria-label", isEnglish ? "GitHub repository" : "GitHub deposu");
+    github.title = isEnglish ? "GitHub repository" : "GitHub deposu";
     github.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.23c-3.34.73-4.04-1.42-4.04-1.42-.55-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.23 1.84 1.23 1.07 1.83 2.81 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.6-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22v3.3c0 .32.22.69.83.58A12 12 0 0 0 12 .5Z"/></svg>';
     header.insertBefore(github, header.firstChild);
   }
@@ -76,10 +77,10 @@
   if (content && headings.length) {
     var toc = document.createElement("nav");
     toc.className = "page-toc";
-    toc.setAttribute("aria-label", "Bu sayfada");
+    toc.setAttribute("aria-label", isEnglish ? "On this page" : "Bu sayfada");
     var title = document.createElement("p");
     title.className = "toc-title";
-    title.textContent = "Bu sayfada";
+    title.textContent = isEnglish ? "On this page" : "Bu sayfada";
     toc.appendChild(title);
     var list = document.createElement("ul");
     list.className = "toc-list";
@@ -109,20 +110,30 @@
     updateCurrentHeading();
   }
 
+  var languageLink = document.querySelector(".language-link");
+  if (languageLink) {
+    languageLink.addEventListener("click", function () {
+      if (window.location.hash && document.getElementById(decodeURIComponent(window.location.hash.slice(1)))) {
+        languageLink.hash = window.location.hash;
+      }
+    });
+  }
+
   document.querySelectorAll("pre").forEach(function (pre) {
     var code = pre.querySelector("code");
     if (!code || !navigator.clipboard) return;
     var btn = document.createElement("button");
     btn.className = "copy-btn";
     btn.type = "button";
-    btn.textContent = "Kopyala";
+    var copyText = isEnglish ? "Copy" : "Kopyala";
+    btn.textContent = copyText;
     btn.addEventListener("click", function () {
       navigator.clipboard.writeText(code.textContent).then(function () {
-        btn.textContent = "Kopyalandı";
-        setTimeout(function () { btn.textContent = "Kopyala"; }, 1500);
+        btn.textContent = isEnglish ? "Copied" : "Kopyalandı";
+        setTimeout(function () { btn.textContent = copyText; }, 1500);
       }).catch(function (error) {
         console.error("Kod kopyalanamadı:", error);
-        btn.textContent = "Kopyalanamadı";
+        btn.textContent = isEnglish ? "Copy failed" : "Kopyalanamadı";
       });
     });
     pre.appendChild(btn);
