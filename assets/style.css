@@ -63,7 +63,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--text);
+  color: #8bcaff;
   font-size: 13px;
   font-weight: 700;
   line-height: 1.3;
