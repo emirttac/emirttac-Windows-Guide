@@ -13,7 +13,12 @@
 
   function updateThemeLabel() {
     var isLight = root.getAttribute("data-theme") === "light";
-    themeBtn.textContent = isLight ? "Koyu tema" : "Açık tema";
+    var label = isLight ? "Koyu temaya geç" : "Açık temaya geç";
+    themeBtn.setAttribute("aria-label", label);
+    themeBtn.title = label;
+    themeBtn.innerHTML = isLight
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
   }
   if (themeBtn) {
     updateThemeLabel();
@@ -34,7 +39,9 @@
     var github = document.createElement("a");
     github.className = "github-link";
     github.href = "https://github.com/emirttac/emirttac-Windows-Guide";
-    github.textContent = "GitHub ↗";
+    github.setAttribute("aria-label", "GitHub deposu");
+    github.title = "GitHub deposu";
+    github.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.23c-3.34.73-4.04-1.42-4.04-1.42-.55-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.23 1.84 1.23 1.07 1.83 2.81 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.87.12 3.17.77.84 1.24 1.91 1.24 3.22 0 4.6-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22v3.3c0 .32.22.69.83.58A12 12 0 0 0 12 .5Z"/></svg>';
     header.insertBefore(github, header.firstChild);
   }
 
