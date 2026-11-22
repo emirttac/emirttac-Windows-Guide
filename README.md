@@ -1,4 +1,4 @@
-# Windows 11 Kurulum Medyası Servisleme: Microsoft Yerel Araçlarıyla Teknik Referans
+# Windows Customization Guide by emirttac
 
 > **Kapsam:** Üçüncü taraf araç kullanmadan, yalnızca Microsoft araçlarıyla (DISM, Dism PowerShell modülü, `reg.exe`, `oscdimg`, Windows Setup) resmi Windows 11 kurulum medyasının incelenmesi, çevrimdışı olarak servislenmesi ve yeniden paketlenmesi için kavramsal bir referanstır.
 >
