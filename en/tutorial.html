@@ -187,9 +187,6 @@ icacls "C:\Mod\Medya\sources\install.wim" /grant Administrators:F</code></pre>
           <li><strong>Desktop icons:</strong> <em>This PC</em> and <em>Recycle Bin</em> are shown.</li>
           <li><strong>Widgets and Chat:</strong> these buttons on the taskbar are hidden.</li>
         </ul>
-        <blockquote>
-          <p><strong>Note:</strong> I confirmed the Widgets and Chat values using third-party sources; I could not find them in Microsoft's official documentation. On some Windows 11 versions the Widgets value may not be writable; the command then shows <code>NOT WRITTEN</code>. Check the result on a virtual machine for both versions.</p>
-        </blockquote>
 
         <h2 id="adim-7">Step 7: Committing changes and putting install.wim back</h2>
         <p><strong>What we are doing here:</strong> We <strong>save</strong> our changes into the image, unmount it, and then put the modified file back into the ISO's contents.</p>
