@@ -21,6 +21,7 @@ Web rehberindeki arama, seçili dilin tüm bölümlerinde çalışır; üstteki 
 5. Kayıt defteri ve hazır uygulamalar
 6. Doğrulama, destek yaşam döngüsü, lisans ve güvenlik
 7. Sorun giderme, sözlük ve Microsoft kaynakları
+8. Adım adım uygulama akışı ([Tutorial](https://emirttac.github.io/emirttac-Windows-Guide/tutorial.html))
 
 Rehber, Windows 11 imajlarıyla çalışan teknik kullanıcıları hedefleyen bir referanstır; her komutun hedef sürümde yedek alınmış bir imaj ve sanal makine üzerinde doğrulanması gerekir. Komut örneklerinde kullanılan yol ve indeks yer tutucularını kendi medyanıza göre değiştirin. DISM/ISO oluşturma adımlarının tümü bu belgede fiilen çalıştırılmış değildir; doğrulama kapsamı ilgili bölümlerde belirtilir.
 

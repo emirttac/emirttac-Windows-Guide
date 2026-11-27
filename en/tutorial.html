@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial — Windows Customization Guide by emirttac</title>
+  <link rel="icon" type="image/png" href="../logo.png">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left">
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menu">☰</button>
+      <a class="site-title" href="index.html">emirttac</a>
+    </div>
+    <div class="header-right">
+      <a class="language-link" href="../tutorial.html" lang="tr" hreflang="tr">Türkçe</a>
+      <button id="theme-toggle" class="theme-toggle" type="button">Light theme</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Sections">
+      <p class="nav-group-title">Sections</p>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">1–2. Overview and Scope</a></li>
+        <li><a class="nav-link" href="media-and-tools.html">3–4. Prerequisites and Media Structure</a></li>
+        <li><a class="nav-link" href="servicing.html">5–6. WIM Architecture and Servicing</a></li>
+        <li><a class="nav-link" href="iso-and-automation.html">7–8. Booting, ISO, and Automation</a></li>
+        <li><a class="nav-link" href="registry-and-apps.html">9–10. Registry and Applications</a></li>
+        <li><a class="nav-link" href="validation-and-licensing.html">11–13. Validation, Lifecycle, and Licensing</a></li>
+        <li><a class="nav-link" href="troubleshooting.html">14–16. Troubleshooting, Glossary, and References</a></li>
+        <li><a class="nav-link active" href="tutorial.html" aria-current="page">Tutorial</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <div class="content-inner">
+        <h1>Tutorial: Step by Step</h1>
+
+        <blockquote>
+          <p><strong>How to use:</strong> This page gives a short workflow for readers who want to apply the guide's sections in order. Each step's details are in the linked section. Do not move on until the output of the current step has been checked.</p>
+          <p><strong>Prerequisites:</strong> An elevated Command Prompt, enough free space on the working drive, and a backup of the original media. Paths such as <code>C:\Mod</code> and placeholders such as <code>&lt;N&gt;</code> are examples; replace them with values from your own media.</p>
+        </blockquote>
+
+        <blockquote class="warn">
+          <p><strong>Warning:</strong> Do not apply this workflow to a real device or distribution media before testing it in a virtual machine. Microsoft Edge and WebView2 removal, disabling security features, and activation bypass steps are not part of this workflow (see <a href="index.html#kapsam">1</a> and <a href="registry-and-apps.html#edge-webview2">10.4</a>).</p>
+        </blockquote>
+
+        <h2 id="adim-1">Step 1: ADK and oscdimg installation</h2>
+        <ul>
+          <li>Download the Windows ADK from <a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install" target="_blank" rel="noopener">Microsoft's Windows ADK installation page</a> and install only the <strong>Deployment Tools</strong> feature. <code>oscdimg.exe</code> ships with it. For version selection, see <a href="media-and-tools.html#adk-politikasi">3.3</a>.</li>
+          <li>After installation, note the path to <code>oscdimg.exe</code>. It is usually in the <code>...\Deployment Tools\amd64\Oscdimg\</code> folder.</li>
+        </ul>
+
+        <h2 id="adim-2">Step 2: Preparing the working environment</h2>
+        <ul>
+          <li>Create the <code>C:\Mod</code> folder and add two folders inside it: <code>Gecici</code> (mount directory) and <code>Medya</code> (ISO contents). Avoid spaces and non-ASCII characters in paths, and do not use protected locations such as Documents (<a href="media-and-tools.html#calisma-ortami">3.1</a>).</li>
+          <li>Mount the Windows 11 ISO (right-click > Mount) and copy all of its contents to <code>C:\Mod\Medya</code>.</li>
+          <li>Remove the read-only attribute from the copied <code>install.wim</code> and take ownership of it. In an elevated Command Prompt:</li>
+        </ul>
+        <pre><code>attrib -r "C:\Mod\Medya\sources\install.wim"
+takeown /F "C:\Mod\Medya\sources\install.wim"
+icacls "C:\Mod\Medya\sources\install.wim" /grant Administrators:F</code></pre>
+        <ul>
+          <li>Copy <code>install.wim</code> to <code>C:\Mod\install.wim</code> as the working copy. The original stays in <code>C:\Mod\Medya\sources</code> as a backup; do not delete it until Step 7.</li>
+        </ul>
+
+        <h2 id="adim-3">Step 3: Finding the WIM index and mounting</h2>
+        <ul>
+          <li>Get the index list:</li>
+        </ul>
+        <pre><code>dism /Get-ImageInfo /ImageFile:"C:\Mod\install.wim"</code></pre>
+        <ul>
+          <li>In the output, find the <strong>Index</strong> number of the target edition. Take it only from this media's output; an index from another media may not match (<a href="servicing.html#medya-indeksleri">5.2</a>).</li>
+          <li>Mount the image, replacing <code>&lt;N&gt;</code> with the index you found:</li>
+        </ul>
+        <pre><code>dism /Mount-Image /ImageFile:"C:\Mod\install.wim" /Index:&lt;N&gt; /MountDir:"C:\Mod\Gecici"</code></pre>
+        <ul>
+          <li>Verify the mount: <code>dism /Get-MountedImageInfo</code>.</li>
+        </ul>
+
+        <h2 id="adim-4">Step 4: Listing provisioned package names</h2>
+        <ul>
+          <li>List the provisioned AppX packages in the mounted image:</li>
+        </ul>
+        <pre><code>dism /Image:"C:\Mod\Gecici" /Get-ProvisionedAppxPackages</code></pre>
+        <ul>
+          <li>Copy the <strong>PackageName</strong> values of the packages you want to remove. Package names change with version and language, so use this output as the source; names from another version will not match (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+        </ul>
+
+        <h2 id="adim-5">Step 5: Removing the selected provisioned packages</h2>
+        <ul>
+          <li>Choose the packages to remove by group: communication apps, news and feedback apps, extra apps preinstalled by Microsoft, and game leftovers. In each line, use the <strong>full</strong> package name from Step 4; do not use wildcards.</li>
+          <li>Repeat the template below for each package you selected:</li>
+        </ul>
+        <pre><code>dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;FULL_PACKAGE_NAME_1&gt;
+dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;FULL_PACKAGE_NAME_2&gt;</code></pre>
+        <ul>
+          <li>Removing provisioned packages only affects users created later; existing users' packages are not affected (<a href="registry-and-apps.html#bolum-10-1">10.1</a>).</li>
+          <li>Do not touch the shell, the Store infrastructure, or other system components (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+        </ul>
+
+        <h2 id="adim-6">Step 6: Setting the default user profile (optional)</h2>
+        <ul>
+          <li><code>SetupComplete.cmd</code> runs as the Local System account, so <code>HKCU</code> writes inside it do not reach the new user. Write per-user settings to the <code>Default</code> profile hive instead (<a href="registry-and-apps.html#kayit-defteri">9.1</a>, <a href="iso-and-automation.html#setupcomplete">8.2</a>).</li>
+          <li>Load the default profile hive under a temporary name:</li>
+        </ul>
+        <pre><code>reg load HKLM\MODDEFAULT "C:\Mod\Gecici\Users\Default\NTUSER.DAT"</code></pre>
+        <ul>
+          <li>Write the values you want. The lines below are examples only; for the meaning of each value, see the table in <a href="registry-and-apps.html#referans-anahtarlar">9.2</a>:</li>
+        </ul>
+        <pre><code>reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{645FF040-5081-101B-9F08-00AA002F954E}" /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarMn /t REG_DWORD /d 0 /f</code></pre>
+        <ul>
+          <li>Close any open Registry Editor window, then unload the hive. If the hive stays open, unloading fails (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>):</li>
+        </ul>
+        <pre><code>reg unload HKLM\MODDEFAULT</code></pre>
+
+        <h2 id="adim-7">Step 7: Committing changes and putting install.wim back</h2>
+        <ul>
+          <li>Close File Explorer windows and any open files under <code>C:\Mod\Gecici</code>. Unmounting can fail for these reasons (<a href="troubleshooting.html#sorun-matrisi">14.2</a>).</li>
+          <li>Run the listing command from Step 4 again; the packages you removed should no longer appear.</li>
+          <li>Commit the changes and unmount the image:</li>
+        </ul>
+        <pre><code>dism /Unmount-Image /MountDir:"C:\Mod\Gecici" /Commit</code></pre>
+        <ul>
+          <li>If an error occurs, review <code>%WINDIR%\Logs\Dism\dism.log</code> before considering <code>/Discard</code>, which throws away the changes (<a href="troubleshooting.html#bolum-14-1">14.1</a>).</li>
+          <li>Move the original <code>C:\Mod\Medya\sources\install.wim</code> to a backup location, then copy the modified <code>C:\Mod\install.wim</code> into <code>C:\Mod\Medya\sources</code>.</li>
+        </ul>
+
+        <h2 id="adim-8">Step 8: Creating the ISO</h2>
+        <ul>
+          <li>In an elevated Command Prompt, build the ISO. If <code>oscdimg.exe</code> is not on the PATH, use the full path you noted in Step 1:</li>
+        </ul>
+        <pre><code>oscdimg -m -o -u2 -udfver102 -bootdata:2#p0,e,b"C:\Mod\Medya\boot\etfsboot.com"#pEF,e,b"C:\Mod\Medya\efi\microsoft\boot\efisys.bin" "C:\Mod\Medya" "C:\Mod\Custom.iso"</code></pre>
+        <ul>
+          <li>Because <code>install.wim</code> is larger than the 4 GiB limit, UDF (<code>-u2</code>) is required (<a href="iso-and-automation.html#dosya-sistemi">7.3</a>).</li>
+          <li>Record the SHA-256 hash of the ISO: <code>Get-FileHash -Algorithm SHA256 "C:\Mod\Custom.iso"</code> (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
+        </ul>
+
+        <h2 id="adim-9">Step 9: Testing in a virtual machine</h2>
+        <ul>
+          <li>Attach the ISO to a UEFI-capable virtual machine (such as a Hyper-V Generation 2 VM) and boot from it. Test BIOS and UEFI boot separately (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
+          <li>Check the logs during and after setup: <code>C:\Windows\Panther\UnattendGC\setupact.log</code> (<a href="troubleshooting.html#gunlukler">14.1</a>).</li>
+          <li>Do not write an ISO that fails testing to physical media. For troubleshooting, see the matrix in <a href="troubleshooting.html#sorun-matrisi">14.2</a>.</li>
+        </ul>
+
+        <nav class="pager" aria-label="Page navigation"><a class="pager-link prev" href="troubleshooting.html"><span class="pager-label">← Previous</span><span class="pager-title">14–16. Troubleshooting, Glossary, and References</span></a></nav>
+        <footer class="site-footer">Document version: 2.0 · Last reviewed: November 22, 2026</footer>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial — Windows Customization Guide by emirttac</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left">
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Menü">☰</button>
+      <a class="site-title" href="index.html">emirttac</a>
+    </div>
+    <div class="header-right">
+      <a class="language-link" href="en/tutorial.html" lang="en" hreflang="en">English</a>
+      <button id="theme-toggle" class="theme-toggle" type="button">Koyu Tema</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav id="sidebar" class="sidebar" aria-label="Bölümler">
+      <p class="nav-group-title">Bölümler</p>
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">1–2. Genel Bakış ve Kapsam</a></li>
+        <li><a class="nav-link" href="media-and-tools.html">3–4. Ön Koşullar ve Medya Yapısı</a></li>
+        <li><a class="nav-link" href="servicing.html">5–6. WIM Mimarisi ve Servisleme</a></li>
+        <li><a class="nav-link" href="iso-and-automation.html">7–8. Önyükleme, ISO ve Otomasyon</a></li>
+        <li><a class="nav-link" href="registry-and-apps.html">9–10. Kayıt Defteri ve Uygulamalar</a></li>
+        <li><a class="nav-link" href="validation-and-licensing.html">11–13. Doğrulama, Yaşam Döngüsü ve Lisans</a></li>
+        <li><a class="nav-link" href="troubleshooting.html">14–16. Sorun Giderme, Sözlük ve Kaynaklar</a></li>
+        <li><a class="nav-link active" href="tutorial.html">Tutorial</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <div class="content-inner">
+        <h1>Tutorial: Adım Adım Uygulama</h1>
+
+        <blockquote>
+          <p><strong>Kullanım:</strong> Bu sayfa, rehberdeki bölümleri sırayla uygulamak isteyenler için kısa bir iş akışı sunar. Her adımın ayrıntısı ilgili bölümdedir; adım sonundaki bağlantılar o bölüme gider. Bir adımın çıktısını kontrol etmeden bir sonrakine geçmeyin.</p>
+          <p><strong>Ön koşul:</strong> Yönetici olarak açılmış Komut İstemi, çalışma sürücüsünde yeterli boş alan ve özgün medyanın yedeği. <code>C:\Mod</code> gibi yollar ve <code>&lt;N&gt;</code> gibi yer tutucular örnektir; kendi medyanıza göre değiştirin.</p>
+        </blockquote>
+
+        <blockquote class="warn">
+          <p><strong>Uyarı:</strong> Bu akış bir sanal makinede denenmeden gerçek bir cihaza veya dağıtım medyasına uygulanmamalıdır. Edge ve WebView2 kaldırma, güvenlik özelliklerini devre dışı bırakma ve etkinleştirme atlatma adımları bu akışta yer almaz (bkz. <a href="index.html#kapsam">1</a> ve <a href="registry-and-apps.html#edge-webview2">10.4</a>).</p>
+        </blockquote>
+
+        <h2 id="adim-1">1. Adım: ADK ve oscdimg kurulumu</h2>
+        <ul>
+          <li>Microsoft'un <a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install" target="_blank" rel="noopener">Windows ADK kurulum sayfasından</a> ADK'yı indirin ve yalnızca <strong>Dağıtım Araçları</strong> (Deployment Tools) bileşenini kurun. <code>oscdimg.exe</code> bu bileşenle gelir. Sürüm seçimi için <a href="media-and-tools.html#adk-politikasi">3.3</a> bölümüne bakın.</li>
+          <li>Kurulum bittikten sonra <code>oscdimg.exe</code> dosyasının yolunu not edin. Varsayılan konum genellikle <code>...\Deployment Tools\amd64\Oscdimg\</code> klasörüdür.</li>
+        </ul>
+
+        <h2 id="adim-2">2. Adım: Çalışma ortamını hazırlama</h2>
+        <ul>
+          <li><code>C:\Mod</code> klasörünü oluşturun ve içine iki klasör ekleyin: <code>Gecici</code> (bağlama dizini) ve <code>Medya</code> (ISO içeriği). Yollarda boşluk veya Türkçe karakter kullanmayın; Belgeler gibi korumalı konumları seçmeyin (<a href="media-and-tools.html#calisma-ortami">3.1</a>).</li>
+          <li>Windows 11 ISO'sunu bağlayın (sağ tık > Bağla) ve tüm içeriğini <code>C:\Mod\Medya</code> klasörüne kopyalayın.</li>
+          <li>Kopyalanan <code>install.wim</code> dosyasının salt okunur özniteliğini kaldırın ve sahipliğini alın. Yönetici Komut İstemi'nde:</li>
+        </ul>
+        <pre><code>attrib -r "C:\Mod\Medya\sources\install.wim"
+takeown /F "C:\Mod\Medya\sources\install.wim"
+icacls "C:\Mod\Medya\sources\install.wim" /grant Administrators:F</code></pre>
+        <ul>
+          <li><code>install.wim</code> dosyasını çalışma kopyası olarak <code>C:\Mod\install.wim</code> konumuna kopyalayın. Özgün dosya <code>C:\Mod\Medya\sources</code> içinde yedek olarak kalsın; son adıma kadar silmeyin.</li>
+        </ul>
+
+        <h2 id="adim-3">3. Adım: WIM indeksini bulma ve bağlama</h2>
+        <ul>
+          <li>İndeks listesini alın:</li>
+        </ul>
+        <pre><code>dism /Get-ImageInfo /ImageFile:"C:\Mod\install.wim"</code></pre>
+        <ul>
+          <li>Çıktıda hedef sürümün <strong>Index</strong> numarasını bulun. Numarayı yalnızca bu medyanın çıktısından alın; başka bir medyadan alınan numara eşleşmeyebilir (<a href="servicing.html#medya-indeksleri">5.2</a>).</li>
+          <li><code>&lt;N&gt;</code> yerine bulduğunuz numarayı yazarak imajı bağlayın:</li>
+        </ul>
+        <pre><code>dism /Mount-Image /ImageFile:"C:\Mod\install.wim" /Index:&lt;N&gt; /MountDir:"C:\Mod\Gecici"</code></pre>
+        <ul>
+          <li>Bağlamayı doğrulayın: <code>dism /Get-MountedImageInfo</code>.</li>
+        </ul>
+
+        <h2 id="adim-4">4. Adım: Hazır paket adlarını listeleme</h2>
+        <ul>
+          <li>Bağlı imajdaki hazır (provisioned) AppX paketlerini listeleyin:</li>
+        </ul>
+        <pre><code>dism /Image:"C:\Mod\Gecici" /Get-ProvisionedAppxPackages</code></pre>
+        <ul>
+          <li>Kaldırmak istediğiniz paketlerin <strong>PackageName</strong> değerlerini kopyalayın. Paket adları sürüme ve dile göre değiştiği için bu çıktıyı esas alın; başka bir sürümden alınan adlar eşleşmez (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+        </ul>
+
+        <h2 id="adim-5">5. Adım: Seçilen hazır paketleri kaldırma</h2>
+        <ul>
+          <li>Kaldırılacakları gruplara göre seçin: iletişim uygulamaları, haber ve geri bildirim uygulamaları, Microsoft'un önceden yüklediği ek uygulamalar ve oyun artıkları. Her satırda adım 4'teki <strong>tam</strong> paket adını kullanın; joker karakter kullanmayın.</li>
+          <li>Aşağıdaki şablonu seçtiğiniz paket sayısı kadar satıra çoğaltın:</li>
+        </ul>
+        <pre><code>dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;TAM_PAKET_ADI_1&gt;
+dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;TAM_PAKET_ADI_2&gt;</code></pre>
+        <ul>
+          <li>Hazır paket kaldırma yalnızca yeni oluşturulacak kullanıcılar için etkilidir; mevcut kullanıcıların paketleri etkilenmez (<a href="registry-and-apps.html#bolum-10-1">10.1</a>).</li>
+          <li>Kabuk, Store altyapısı ve diğer sistem bileşenlerine dokunmayın (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+        </ul>
+
+        <h2 id="adim-6">6. Adım: Varsayılan kullanıcı profilini ayarlama (isteğe bağlı)</h2>
+        <ul>
+          <li><code>SetupComplete.cmd</code> Yerel Sistem hesabıyla çalıştığı için içindeki <code>HKCU</code> yazmaları yeni kullanıcıya ulaşmaz. Kullanıcıya özel ayarları bu yüzden <code>Default</code> profil kovanına yazın (<a href="registry-and-apps.html#kayit-defteri">9.1</a>, <a href="iso-and-automation.html#setupcomplete">8.2</a>).</li>
+          <li>Varsayılan profil kovanını geçici bir ad altında yükleyin:</li>
+        </ul>
+        <pre><code>reg load HKLM\MODDEFAULT "C:\Mod\Gecici\Users\Default\NTUSER.DAT"</code></pre>
+        <ul>
+          <li>İstediğiniz değerleri yazın. Aşağıdaki satırlar yalnızca örnektir; değerlerin anlamı için <a href="registry-and-apps.html#referans-anahtarlar">9.2</a> tablosuna bakın:</li>
+        </ul>
+        <pre><code>reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{645FF040-5081-101B-9F08-00AA002F954E}" /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa /t REG_DWORD /d 0 /f
+reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarMn /t REG_DWORD /d 0 /f</code></pre>
+        <ul>
+          <li>Kayıt Defteri Düzenleyicisi penceresi açıksa kapatın, sonra kovanı boşaltın. Kovan açık kalırsa boşaltma başarısız olur (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>):</li>
+        </ul>
+        <pre><code>reg unload HKLM\MODDEFAULT</code></pre>
+
+        <h2 id="adim-7">7. Adım: Değişiklikleri kaydetme ve install.wim'i geri koyma</h2>
+        <ul>
+          <li>Gezgin pencerelerini ve <code>C:\Mod\Gecici</code> içindeki açık dosyaları kapatın. Ayırma, bu nedenlerle başarısız olabilir (<a href="troubleshooting.html#sorun-matrisi">14.2</a>).</li>
+          <li>Adım 4'teki listeleme komutunu yeniden çalıştırın; kaldırdığınız paketler listede görünmemelidir.</li>
+          <li>Değişiklikleri kaydedip imajı ayırın:</li>
+        </ul>
+        <pre><code>dism /Unmount-Image /MountDir:"C:\Mod\Gecici" /Commit</code></pre>
+        <ul>
+          <li>Hata alırsanız değişiklikleri atmak için <code>/Discard</code> kullanmadan önce <code>%WINDIR%\Logs\Dism\dism.log</code> dosyasını inceleyin (<a href="troubleshooting.html#bolum-14-1">14.1</a>).</li>
+          <li>Özgün <code>C:\Mod\Medya\sources\install.wim</code> dosyasını yedek konumuna taşıyın; ardından değiştirilmiş <code>C:\Mod\install.wim</code> dosyasını <code>C:\Mod\Medya\sources</code> klasörüne kopyalayın.</li>
+        </ul>
+
+        <h2 id="adim-8">8. Adım: ISO oluşturma</h2>
+        <ul>
+          <li>Yönetici Komut İstemi'nde ISO'yu oluşturun. <code>oscdimg.exe</code> PATH içinde değilse 1. adımda not ettiğiniz tam yolu yazın:</li>
+        </ul>
+        <pre><code>oscdimg -m -o -u2 -udfver102 -bootdata:2#p0,e,b"C:\Mod\Medya\boot\etfsboot.com"#pEF,e,b"C:\Mod\Medya\efi\microsoft\boot\efisys.bin" "C:\Mod\Medya" "C:\Mod\Ozel.iso"</code></pre>
+        <ul>
+          <li><code>install.wim</code> dosyası 4 GiB sınırını aştığı için UDF (<code>-u2</code>) zorunludur (<a href="iso-and-automation.html#dosya-sistemi">7.3</a>).</li>
+          <li>ISO'nun SHA-256 özetini kaydedin: <code>Get-FileHash -Algorithm SHA256 "C:\Mod\Ozel.iso"</code> (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
+        </ul>
+
+        <h2 id="adim-9">9. Adım: Sanal makinede test etme</h2>
+        <ul>
+          <li>ISO'yu UEFI destekli (Hyper-V Generation 2 gibi) bir sanal makineye bağlayıp önyükleyin. BIOS ve UEFI önyüklemesini ayrı ayrı deneyin (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
+          <li>Kurulum sırasında ve sonrasında günlükleri kontrol edin: <code>C:\Windows\Panther\UnattendGC\setupact.log</code> (<a href="troubleshooting.html#gunlukler">14.1</a>).</li>
+          <li>Testi geçmeyen ISO'yu fiziksel medyaya yazmayın. Sorun giderme için <a href="troubleshooting.html#sorun-matrisi">14.2</a> matrisine bakın.</li>
+        </ul>
+
+        <nav class="pager" aria-label="Sayfa gezintisi">
+          <a class="pager-link prev" href="troubleshooting.html">
+            <span class="pager-label">← Önceki</span>
+            <span class="pager-title">14–16. Sorun Giderme, Sözlük ve Kaynaklar</span>
+          </a>
+        </nav>
+
+        <footer class="site-footer">
+          Belge sürümü: 2.0 · Son gözden geçirme: 22 Kasım 2026
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/script.js"></script>
+</body>
+</html>
