@@ -223,6 +223,9 @@ copy "C:\Mod\install.wim" "C:\Mod\Medya\sources\"</code></pre>
           <li>Yönetici Komut İstemi'nde ISO'yu oluşturun. <code>oscdimg.exe</code> PATH'te değilse Adım 1'de not ettiğiniz tam yolu tırnak içinde yazın:</li>
         </ul>
         <pre><code>oscdimg -m -o -u2 -udfver102 -bootdata:2#p0,e,b"C:\Mod\Medya\boot\etfsboot.com"#pEF,e,b"C:\Mod\Medya\efi\microsoft\boot\efisys.bin" "C:\Mod\Medya" "C:\Mod\Ozel.iso"</code></pre>
+        <p><strong>"'oscdimg' is not recognized..." hatası alırsanız:</strong> ADK kurulu olsa bile <code>oscdimg</code> PATH'e eklenmemiş olabilir. Aynı Komut İstemi penceresinde, yalnızca o oturum için geçerli olacak şekilde şu komutu çalıştırıp ISO komutunu tekrar deneyin:</p>
+        <pre><code>set "PATH=%PATH%;C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg"</code></pre>
+        <p>Komut İstemi'ni kapattığınızda bu değişiklik kaybolur; kalıcı bir çözüm gerekmez. <code>where oscdimg</code> komutu yolun bulunduğunu doğrular. Farklı bir yere kurduysanız yukarıdaki yolu Adım 1'de not ettiğiniz klasörle değiştirin.</p>
         <ul>
           <li>Komutun son iki yolu sırasıyla <strong>kaynak klasör</strong> (<code>C:\Mod\Medya</code>) ve <strong>çıktı dosyası</strong> (<code>C:\Mod\Ozel.iso</code>) değeridir. Çıktıyı kaynak klasörün içine koymayın.</li>
           <li>Bitince ISO'nun SHA-256 özetini kaydedin. Dosyanın sonradan değişmediğini ileride bu özetle doğrulayabilirsiniz. PowerShell'de çalıştırın (<a href="iso-and-automation.html#bolum-7-4">7.4</a>):</li>
