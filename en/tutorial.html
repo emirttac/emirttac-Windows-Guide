@@ -147,28 +147,26 @@ icacls "C:\Mod\Medya\sources\install.wim" /grant Administrators:F</code></pre>
         <ul>
           <li>Open <code>C:\Mod\paketler.txt</code> in Notepad.</li>
           <li>Each entry has a <strong>DisplayName</strong> (the readable app name) and a <strong>PackageName</strong> (the full name used in commands). Package names follow the pattern <code>Name_version_architecture_~_publisherID</code>.</li>
-          <li>Copy the <strong>PackageName</strong> of each app you want to remove exactly. Names change with version and language, so use this output as the source; a name taken from another version will not match (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+          <li>Use this list for review only. You will select the packages to remove in the window that opens in Step 5; you do not need to copy package names.</li>
           <li><strong>Do not remove anything in this step.</strong> The Windows shell (Start, taskbar, Settings), the Microsoft Store infrastructure, and Edge/WebView2-related packages are not removal candidates.</li>
         </ul>
         <p><strong>Check:</strong> If <code>paketler.txt</code> contains both <code>DisplayName</code> and <code>PackageName</code> lines, the list was captured correctly.</p>
 
-        <h2 id="adim-5">Step 5: Removing the selected provisioned packages</h2>
-        <p><strong>What we are doing here:</strong> We remove the packages you selected in Step 4 from the image's "install for new users" list. The command only removes that package from the image; it does not touch anything else installed on the system.</p>
+        <h2 id="adim-5">Step 5: Selecting and removing provisioned packages in a window</h2>
+        <p><strong>What we are doing here:</strong> We select the provisioned packages you want to remove in a window. The packages you select are removed from the image's "install for new users" list. The command only removes that package from the image; it does not touch anything else installed on the system.</p>
         <ul>
-          <li>Group the packages you want to remove. Examples of packages that can be removed:</li>
-          <li><strong>Communication:</strong> <code>Microsoft.windowscommunicationsapps</code> (Mail and Calendar)</li>
-          <li><strong>News and feedback:</strong> <code>Microsoft.BingNews</code>, <code>Microsoft.WindowsFeedbackHub</code></li>
-          <li><strong>Game leftovers:</strong> <code>Microsoft.MicrosoftSolitaireCollection</code></li>
-          <li>The names above are examples only. Use the <strong>full</strong> <code>PackageName</code> from your own list, since it varies by version and language. Do not use wildcards (<code>*</code>).</li>
-          <li>Write one line per package. Repeat the template below for each package you selected:</li>
+          <li>In an administrator <strong>Command Prompt</strong>, paste the following <strong>single line</strong> and press Enter. The provisioned packages open in a window:</li>
         </ul>
-        <pre><code>dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;FULL_PACKAGE_NAME_1&gt;
-dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;FULL_PACKAGE_NAME_2&gt;</code></pre>
+        <pre><code>powershell -NoProfile -Command "Get-AppxProvisionedPackage -Path 'C:\Mod\Gecici' | Where-Object { $_.DisplayName -notmatch 'Store|VCLibs|NET\.Native|UI\.Xaml|AppRuntime|DesktopAppInstaller|WebView|Edge|SecHealthUI|Windows\.Client|MicrosoftWindows\.Client|ShellExperience|StartMenu|CloudExperience|AAD\.Broker|AccountsControl|LockApp|XboxIdentityProvider|Extension' } | Sort-Object DisplayName | Select-Object DisplayName, Version, PackageName | Out-GridView -Title 'Select the packages to remove with CTRL, then click OK (system packages hidden)' -PassThru | ForEach-Object { Write-Host ('Removing: ' + $_.DisplayName); Remove-AppxProvisionedPackage -Path 'C:\Mod\Gecici' -PackageName $_.PackageName | Out-Null }"</code></pre>
         <ul>
-          <li>If a command reports an error such as "not found", the name is wrong. Copy it again from <code>paketler.txt</code>.</li>
+          <li>In the window, select the rows you want to remove. To select several, hold <strong>CTRL</strong>; to select a continuous range, use <strong>SHIFT</strong>. Then click <strong>OK</strong>.</li>
+          <li>Clicking <strong>Cancel</strong> or closing the window removes nothing. If you click OK without selecting any row, no package is removed either.</li>
+          <li>For each package removed, the console shows a <code>Removing: ...</code> line. If an error appears, note the error text and run the step again.</li>
+          <li>If the window does not open, make sure you ran the command as administrator and that the mount from Step 3 is still active.</li>
+          <li>The Windows shell, Store infrastructure, Edge, and WebView2 packages are hidden by the filter in the window. Do not remove them (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+          <li>Examples of packages you can remove: <code>Microsoft.windowscommunicationsapps</code> (Mail and Calendar), <code>Microsoft.BingNews</code>, <code>Microsoft.WindowsFeedbackHub</code>, <code>Microsoft.MicrosoftSolitaireCollection</code>. Names vary by version and language; use the names you see in the window.</li>
           <li><strong>Important limit:</strong> This command affects only <em>new</em> user accounts. Packages already installed for existing users are not removed (<a href="registry-and-apps.html#bolum-10-1">10.1</a>).</li>
           <li>The Windows 11 26H2 release notes also describe removing preinstalled apps through Group Policy. That is a device policy and does not replace the image method used in this guide.</li>
-          <li>Do not touch the shell, the Store infrastructure, or other system components (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
         </ul>
 
         <h2 id="adim-6">Step 6: Setting the default user profile (optional)</h2>

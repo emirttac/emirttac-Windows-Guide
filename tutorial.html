@@ -147,28 +147,26 @@ icacls "C:\Mod\Medya\sources\install.wim" /grant Administrators:F</code></pre>
         <ul>
           <li><code>C:\Mod\paketler.txt</code> dosyasını Not Defteri ile açın.</li>
           <li>Her kayıtta <strong>DisplayName</strong> (uygulamanın okunabilir adı) ve <strong>PackageName</strong> (komutlarda kullanılacak tam ad) yer alır. Paket adları <code>Ad_sürüm_mimari_~_yayıncı-kimliği</code> biçimindedir.</li>
-          <li>Kaldırmak istediğiniz uygulamaların <strong>PackageName</strong> değerini tam olarak kopyalayın. Adlar sürüme ve dile göre değiştiği için bu çıktıyı esas alın; başka bir sürümden alınan ad eşleşmez (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+          <li>Bu listeyi yalnızca incelemek için kullanın. Kaldıracaklarınızı Adım 5'teki pencerede seçeceksiniz; paket adlarını kopyalamanız gerekmez.</li>
           <li><strong>Bu adımda hiçbir şey silmeyin.</strong> Windows'un kabuğu (Başlat, görev çubuğu, Ayarlar), Microsoft Store altyapısı ve Edge/WebView2 ile ilgili paketler kaldırma listesine girmez.</li>
         </ul>
         <p><strong>Kontrol:</strong> <code>paketler.txt</code> içinde hem <code>DisplayName</code> hem <code>PackageName</code> satırları görünüyorsa liste doğru alınmıştır.</p>
 
-        <h2 id="adim-5">5. Adım: Seçilen hazır paketleri kaldırma</h2>
-        <p><strong>Bu adımda ne yapıyoruz?</strong> Adım 4'te listelediğimiz paketlerden seçtiklerimizi, imajın "yeni kullanıcılara kurulacak" listesinden çıkarıyoruz. Bu komut yalnızca imajdaki paketi siler; sisteme kurulu başka bir şeye dokunmaz.</p>
+        <h2 id="adim-5">5. Adım: Hazır paketleri pencereden seçip kaldırma</h2>
+        <p><strong>Bu adımda ne yapıyoruz?</strong> Kaldırmak istediğiniz hazır paketleri bir pencerede seçiyoruz. Seçtikleriniz imajın "yeni kullanıcılara kurulacak" listesinden çıkarılır. Bu komut yalnızca imajdaki paketi siler; sisteme kurulu başka bir şeye dokunmaz.</p>
         <ul>
-          <li>Kaldırılacakları gruplara ayırın. Örnek olarak şunlar kaldırılabilir:</li>
-          <li><strong>İletişim:</strong> <code>Microsoft.windowscommunicationsapps</code> (Posta ve Takvim)</li>
-          <li><strong>Haber ve geri bildirim:</strong> <code>Microsoft.BingNews</code>, <code>Microsoft.WindowsFeedbackHub</code></li>
-          <li><strong>Oyun artıkları:</strong> <code>Microsoft.MicrosoftSolitaireCollection</code></li>
-          <li>Yukarıdaki adlar yalnızca örnektir. Sürüm ve dile göre değişen <strong>tam</strong> <code>PackageName</code> değerini kendi listenizden kullanın. Joker karakter (<code>*</code>) kullanmayın.</li>
-          <li>Her paket için bir satır yazın. Aşağıdaki şablonu seçtiğiniz paket sayısı kadar çoğaltın:</li>
+          <li>Yönetici olarak açılmış bir <strong>Komut İstemi</strong> penceresine aşağıdaki <strong>tek satırı</strong> yapıştırıp Enter'a basın. Hazır paketler bir pencerede açılır:</li>
         </ul>
-        <pre><code>dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;TAM_PAKET_ADI_1&gt;
-dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;TAM_PAKET_ADI_2&gt;</code></pre>
+        <pre><code>powershell -NoProfile -Command "Get-AppxProvisionedPackage -Path 'C:\Mod\Gecici' | Where-Object { $_.DisplayName -notmatch 'Store|VCLibs|NET\.Native|UI\.Xaml|AppRuntime|DesktopAppInstaller|WebView|Edge|SecHealthUI|Windows\.Client|MicrosoftWindows\.Client|ShellExperience|StartMenu|CloudExperience|AAD\.Broker|AccountsControl|LockApp|XboxIdentityProvider|Extension' } | Sort-Object DisplayName | Select-Object DisplayName, Version, PackageName | Out-GridView -Title 'Kaldirmak istediklerinizi CTRL ile secin, sonra Tamam a basin (sistem paketleri gizlendi)' -PassThru | ForEach-Object { Write-Host ('Kaldiriliyor: ' + $_.DisplayName); Remove-AppxProvisionedPackage -Path 'C:\Mod\Gecici' -PackageName $_.PackageName | Out-Null }"</code></pre>
         <ul>
-          <li>Komut "bulunamadı" benzeri bir hata verirse ad yanlıştır. Adı <code>paketler.txt</code> dosyasından yeniden kopyalayın.</li>
+          <li>Pencerede kaldırmak istediğiniz satırları seçin. Birden fazla seçim için <strong>CTRL</strong> tuşunu basılı tutun; ardışık aralık için <strong>SHIFT</strong> kullanabilirsiniz. Sonra <strong>Tamam</strong> düğmesine basın.</li>
+          <li><strong>İptal</strong> düğmesi ya da pencereyi kapatmak hiçbir paketi silmez. Hiçbir satır seçmeden Tamam derseniz de hiçbir paket kaldırılmaz.</li>
+          <li>Her kaldırılan paket için konsolda <code>Kaldiriliyor: ...</code> satırı görünür. Bir hata çıkarsa hata metnini not alıp adımı yeniden deneyin.</li>
+          <li>Pencere açılmazsa komutu yönetici olarak çalıştırdığınızdan ve Adım 3'teki bağlamanın açık olduğundan emin olun.</li>
+          <li>Pencerede Windows'un kabuğu, Store altyapısı, Edge ve WebView2 paketleri filtreyle gizlenmiştir (<a href="registry-and-apps.html#bolum-10-3">10.3</a>). Bu paketleri kaldırmayın.</li>
+          <li>Kaldırılabilecek örnek paketler: <code>Microsoft.windowscommunicationsapps</code> (Posta ve Takvim), <code>Microsoft.BingNews</code>, <code>Microsoft.WindowsFeedbackHub</code>, <code>Microsoft.MicrosoftSolitaireCollection</code>. Adlar sürüme ve dile göre değişebilir; pencerede gördüğünüz adları esas alın.</li>
           <li><strong>Önemli sınır:</strong> Bu komut yalnızca <em>yeni</em> oluşturulacak kullanıcıları etkiler. Mevcut kullanıcıların paketleri silinmez (<a href="registry-and-apps.html#bolum-10-1">10.1</a>).</li>
           <li>Windows 11 26H2 sürüm notlarında Grup İlkesi ile önceden yüklü uygulamaları kaldırma seçeneği de yer alıyor. Bu bir cihaz politikasıdır; bu rehberdeki imaj yönteminin yerini tutmaz.</li>
-          <li>Kabuk, Store altyapısı ve diğer sistem bileşenlerine dokunmayın (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
         </ul>
 
         <h2 id="adim-6">6. Adım: Varsayılan kullanıcı profilini ayarlama (isteğe bağlı)</h2>
