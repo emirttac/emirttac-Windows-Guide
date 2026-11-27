@@ -39,76 +39,151 @@
         <h1>Tutorial: Step by Step</h1>
 
         <blockquote>
-          <p><strong>How to use:</strong> This page gives a short workflow for readers who want to apply the guide's sections in order. Each step's details are in the linked section. Do not move on until the output of the current step has been checked.</p>
-          <p><strong>Prerequisites:</strong> An elevated Command Prompt, enough free space on the working drive, and a backup of the original media. Paths such as <code>C:\Mod</code> and placeholders such as <code>&lt;N&gt;</code> are examples; replace them with values from your own media.</p>
+          <p><strong>Who is this for?</strong> This page is for people who want to edit Windows installation media on their own computer but have never done it before. For every step, it explains what we are doing, why, and how to check the result.</p>
+          <p><strong>What we will do in short:</strong> Open the Windows 11 installation ISO, change the installation file inside it (<code>install.wim</code>) in a working folder, and then build a new ISO from those changes. The changes include removing some preinstalled apps and, optionally, writing default user settings.</p>
+          <p><strong>Which versions?</strong> Windows 11 <strong>25H2</strong> and <strong>26H2</strong>. The steps are the same for both: 26H2 arrives as a small "enablement" package on top of 25H2 and shares the same servicing branch. To tell which version your ISO is, check the ISO file name (it may contain <code>25H2</code> or <code>26H2</code>). If you are unsure, look at the <strong>Version</strong> line in the <code>dism /Get-ImageInfo</code> output in Step 3: <code>10.0.26200.x</code> means 25H2, <code>10.0.26300.x</code> means 26H2.</p>
+        </blockquote>
+
+        <blockquote>
+          <p><strong>What you need before you start:</strong></p>
+          <ul>
+            <li>A Command Prompt opened as administrator: type <code>cmd</code> in the Start menu, right-click it, and select <strong>Run as administrator</strong>.</li>
+            <li>About 30 GB of free space. The ISO, the copied media, the working copy, and the new ISO together can take that much room.</li>
+            <li>A backup of the original Windows ISO file.</li>
+            <li>Patience. DISM steps may look frozen for a while; wait for the progress percentage to move.</li>
+          </ul>
+          <p><strong>About the commands:</strong> Paths such as <code>C:\Mod</code> are examples. Replace placeholders in angle brackets such as <code>&lt;N&gt;</code> with your own value, and do not type the brackets.</p>
         </blockquote>
 
         <blockquote class="warn">
-          <p><strong>Warning:</strong> Do not apply this workflow to a real device or distribution media before testing it in a virtual machine. Microsoft Edge and WebView2 removal, disabling security features, and activation bypass steps are not part of this workflow (see <a href="index.html#kapsam">1</a> and <a href="registry-and-apps.html#edge-webview2">10.4</a>).</p>
+          <p><strong>Warning:</strong> Test this guide in a virtual machine first; do not apply it to a real device or distribution media before testing. Removing Microsoft Edge and WebView2, disabling security features, and activation bypass steps are outside the scope of this guide (see <a href="index.html#kapsam">1</a> and <a href="registry-and-apps.html#edge-webview2">10.4</a>).</p>
         </blockquote>
 
         <h2 id="adim-1">Step 1: ADK and oscdimg installation</h2>
+        <p><strong>What we are doing here:</strong> We install Microsoft's free <em>Windows ADK</em> toolkit. The only part we need is <code>oscdimg.exe</code>, the tool that builds the new ISO file.</p>
         <ul>
-          <li>Download the Windows ADK from <a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install" target="_blank" rel="noopener">Microsoft's Windows ADK installation page</a> and install only the <strong>Deployment Tools</strong> feature. <code>oscdimg.exe</code> ships with it. For version selection, see <a href="media-and-tools.html#adk-politikasi">3.3</a>.</li>
-          <li>After installation, note the path to <code>oscdimg.exe</code>. It is usually in the <code>...\Deployment Tools\amd64\Oscdimg\</code> folder.</li>
+          <li>From <a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install" target="_blank" rel="noopener">Microsoft's Windows ADK installation page</a>, download <strong>ADK 10.1.26100.9457 (September 2026)</strong>. This version supports Windows 11 25H2 and 26H2. If you downloaded an earlier installer, download the setup again; Microsoft recommends this version over 10.1.26100.2454.</li>
+          <li>On the installer screen, leave only the <strong>Deployment Tools</strong> box checked. The other features are not needed for this guide.</li>
+          <li>Caution: the 10.1.28000.x series (October 2026) is only for Windows 11 26H1. Do not use it for 25H2 or 26H2.</li>
+          <li>If you use WSIM, also apply the ADK patch released for CVE-2026-25166 (details in <a href="media-and-tools.html#adk-politikasi">3.3</a>).</li>
+          <li>After installation, <code>oscdimg.exe</code> is usually in this folder:<br><code>C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe</code><br>If you installed to another location, search for <code>oscdimg.exe</code> in File Explorer and note its full path.</li>
         </ul>
+        <p><strong>Check:</strong> Type the full path in quotes in Command Prompt and run it without parameters. If usage information appears, the tool works.</p>
 
         <h2 id="adim-2">Step 2: Preparing the working environment</h2>
+        <p><strong>What we are doing here:</strong> We set up a separate working area so we can make changes without touching the original ISO. We copy the ISO's contents and make our changes in that copy.</p>
         <ul>
-          <li>Create the <code>C:\Mod</code> folder and add two folders inside it: <code>Gecici</code> (mount directory) and <code>Medya</code> (ISO contents). Avoid spaces and non-ASCII characters in paths, and do not use protected locations such as Documents (<a href="media-and-tools.html#calisma-ortami">3.1</a>).</li>
-          <li>Mount the Windows 11 ISO (right-click > Mount) and copy all of its contents to <code>C:\Mod\Medya</code>.</li>
-          <li>Remove the read-only attribute from the copied <code>install.wim</code> and take ownership of it. In an elevated Command Prompt:</li>
+          <li>In an administrator Command Prompt, create two folders:</li>
+        </ul>
+        <pre><code>mkdir C:\Mod\Gecici
+mkdir C:\Mod\Medya</code></pre>
+        <ul>
+          <li><code>Gecici</code> is the empty folder where we will mount the WIM file. <code>Medya</code> is the copy of the ISO contents.</li>
+          <li>Avoid spaces and non-ASCII characters in paths, and do not use protected locations such as Documents (<a href="media-and-tools.html#calisma-ortami">3.1</a>).</li>
+          <li>Right-click the Windows 11 ISO and select <strong>Mount</strong>. A new drive letter (for example <code>E:</code>) appears; note it.</li>
+          <li>Copy all contents of the ISO into the <code>Medya</code> folder. Replace <code>E:</code> with your own drive letter:</li>
+        </ul>
+        <pre><code>xcopy E:\* C:\Mod\Medya\ /E /H /K /Y</code></pre>
+        <ul>
+          <li>Copying takes a few minutes. When it finishes, <code>C:\Mod\Medya</code> should contain the <code>boot</code>, <code>efi</code>, and <code>sources</code> folders.</li>
+          <li>Check the name of the installation file on your media, then follow the path that matches it:</li>
+        </ul>
+        <pre><code>dir C:\Mod\Medya\sources\install.*</code></pre>
+        <ul>
+          <li>If the output shows <code>install.wim</code>, follow <strong>Path A</strong> below. If it shows <code>install.esd</code>, follow <strong>Path B</strong>: <code>.esd</code> is a compressed format that cannot be edited directly, so it must first be converted to <code>.wim</code>.</li>
+        </ul>
+        <h3>Path A: if install.wim is present</h3>
+        <ul>
+          <li>Remove the read-only attribute from the file and take ownership of it, then give the Administrators group write permission. Without these, you cannot modify the file:</li>
         </ul>
         <pre><code>attrib -r "C:\Mod\Medya\sources\install.wim"
 takeown /F "C:\Mod\Medya\sources\install.wim"
 icacls "C:\Mod\Medya\sources\install.wim" /grant Administrators:F</code></pre>
         <ul>
-          <li>Copy <code>install.wim</code> to <code>C:\Mod\install.wim</code> as the working copy. The original stays in <code>C:\Mod\Medya\sources</code> as a backup; do not delete it until Step 7.</li>
+          <li>Create the working copy. The original stays in <code>Medya\sources</code> as a backup; do not delete it until Step 7:</li>
         </ul>
+        <pre><code>copy "C:\Mod\Medya\sources\install.wim" "C:\Mod\install.wim"</code></pre>
+        <h3>Path B: if only install.esd is present</h3>
+        <ul>
+          <li>List the editions on the media and note the number (index) of the edition you want:</li>
+        </ul>
+        <pre><code>dism /Get-WimInfo /WimFile:"C:\Mod\Medya\sources\install.esd"</code></pre>
+        <ul>
+          <li>Export the edition you chose to a new <code>.wim</code> file. Replace <code>&lt;N&gt;</code> with the index number. This step temporarily uses extra disk space:</li>
+        </ul>
+        <pre><code>dism /Export-Image /SourceImageFile:"C:\Mod\Medya\sources\install.esd" /SourceIndex:&lt;N&gt; /DestinationImageFile:"C:\Mod\install.wim" /Compress:max /CheckIntegrity</code></pre>
+        <ul>
+          <li>This command creates <code>C:\Mod\install.wim</code> directly, which is your working copy, so skip the copy command from Path A. The new file contains only one edition, and its index is usually <strong>1</strong>.</li>
+        </ul>
+        <p><strong>Check:</strong> <code>dir C:\Mod\install.wim</code> should list the file. Its size depends on the release, but it is roughly 7 GB.</p>
 
         <h2 id="adim-3">Step 3: Finding the WIM index and mounting</h2>
+        <p><strong>What we are doing here:</strong> A <code>.wim</code> file can contain several Windows editions (Home, Pro, Education, and so on). Each one has a number, called the <strong>index</strong>. We pick the edition by its number and <strong>mount</strong> the file into a folder, which lets us reach and change the files inside.</p>
         <ul>
-          <li>Get the index list:</li>
+          <li>Get the list of editions in the file:</li>
         </ul>
         <pre><code>dism /Get-ImageInfo /ImageFile:"C:\Mod\install.wim"</code></pre>
         <ul>
-          <li>In the output, find the <strong>Index</strong> number of the target edition. Take it only from this media's output; an index from another media may not match (<a href="servicing.html#medya-indeksleri">5.2</a>).</li>
-          <li>Mount the image, replacing <code>&lt;N&gt;</code> with the index you found:</li>
+          <li>The output shows <strong>Index</strong>, <strong>Name</strong>, and <strong>Version</strong> for each edition. Find the <strong>Index</strong> number of the edition you want (for example <em>Windows 11 Pro</em>). Take the number only from this file's output; the same edition may have a different index on another ISO (<a href="servicing.html#medya-indeksleri">5.2</a>).</li>
+          <li>The <strong>Version</strong> line also tells you the release: <code>10.0.26200.x</code> is 25H2, <code>10.0.26300.x</code> is 26H2.</li>
+          <li>Make sure the Gecici folder is empty. Then mount the edition, replacing <code>&lt;N&gt;</code> with the number you found. This can take a few minutes:</li>
         </ul>
         <pre><code>dism /Mount-Image /ImageFile:"C:\Mod\install.wim" /Index:&lt;N&gt; /MountDir:"C:\Mod\Gecici"</code></pre>
         <ul>
-          <li>Verify the mount: <code>dism /Get-MountedImageInfo</code>.</li>
+          <li>Verify the mount:</li>
         </ul>
+        <pre><code>dism /Get-MountedImageInfo</code></pre>
+        <p><strong>Check:</strong> The output should show the <code>C:\Mod\Gecici</code> mount folder and <code>Status : Ok</code>.</p>
+        <blockquote>
+          <p><strong>If a mount is left over from an earlier attempt:</strong> If the output lists a mount that is still shown but its folder cannot be opened, run <code>dism /Cleanup-Wim</code> to clean up the stale mount. Then start this step again.</p>
+        </blockquote>
 
         <h2 id="adim-4">Step 4: Listing provisioned package names</h2>
+        <p><strong>What we are doing here:</strong> We list the <em>provisioned</em> apps in the image. These are the Store apps that are installed automatically for every <strong>new</strong> user account created from this image. We need this list to know exactly what to remove.</p>
         <ul>
-          <li>List the provisioned AppX packages in the mounted image:</li>
+          <li>List the packages in the mounted image. The list is long, so save it to a file and read it there:</li>
         </ul>
-        <pre><code>dism /Image:"C:\Mod\Gecici" /Get-ProvisionedAppxPackages</code></pre>
+        <pre><code>dism /Image:"C:\Mod\Gecici" /Get-ProvisionedAppxPackages &gt; "C:\Mod\paketler.txt"</code></pre>
         <ul>
-          <li>Copy the <strong>PackageName</strong> values of the packages you want to remove. Package names change with version and language, so use this output as the source; names from another version will not match (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+          <li>Open <code>C:\Mod\paketler.txt</code> in Notepad.</li>
+          <li>Each entry has a <strong>DisplayName</strong> (the readable app name) and a <strong>PackageName</strong> (the full name used in commands). Package names follow the pattern <code>Name_version_architecture_~_publisherID</code>.</li>
+          <li>Copy the <strong>PackageName</strong> of each app you want to remove exactly. Names change with version and language, so use this output as the source; a name taken from another version will not match (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+          <li><strong>Do not remove anything in this step.</strong> The Windows shell (Start, taskbar, Settings), the Microsoft Store infrastructure, and Edge/WebView2-related packages are not removal candidates.</li>
         </ul>
+        <p><strong>Check:</strong> If <code>paketler.txt</code> contains both <code>DisplayName</code> and <code>PackageName</code> lines, the list was captured correctly.</p>
 
         <h2 id="adim-5">Step 5: Removing the selected provisioned packages</h2>
+        <p><strong>What we are doing here:</strong> We remove the packages you selected in Step 4 from the image's "install for new users" list. The command only removes that package from the image; it does not touch anything else installed on the system.</p>
         <ul>
-          <li>Choose the packages to remove by group: communication apps, news and feedback apps, extra apps preinstalled by Microsoft, and game leftovers. In each line, use the <strong>full</strong> package name from Step 4; do not use wildcards.</li>
-          <li>Repeat the template below for each package you selected:</li>
+          <li>Group the packages you want to remove. Examples of packages that can be removed:</li>
+          <li><strong>Communication:</strong> <code>Microsoft.windowscommunicationsapps</code> (Mail and Calendar)</li>
+          <li><strong>News and feedback:</strong> <code>Microsoft.BingNews</code>, <code>Microsoft.WindowsFeedbackHub</code></li>
+          <li><strong>Game leftovers:</strong> <code>Microsoft.MicrosoftSolitaireCollection</code></li>
+          <li>The names above are examples only. Use the <strong>full</strong> <code>PackageName</code> from your own list, since it varies by version and language. Do not use wildcards (<code>*</code>).</li>
+          <li>Write one line per package. Repeat the template below for each package you selected:</li>
         </ul>
         <pre><code>dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;FULL_PACKAGE_NAME_1&gt;
 dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;FULL_PACKAGE_NAME_2&gt;</code></pre>
         <ul>
-          <li>Removing provisioned packages only affects users created later; existing users' packages are not affected (<a href="registry-and-apps.html#bolum-10-1">10.1</a>).</li>
+          <li>If a command reports an error such as "not found", the name is wrong. Copy it again from <code>paketler.txt</code>.</li>
+          <li><strong>Important limit:</strong> This command affects only <em>new</em> user accounts. Packages already installed for existing users are not removed (<a href="registry-and-apps.html#bolum-10-1">10.1</a>).</li>
+          <li>The Windows 11 26H2 release notes also describe removing preinstalled apps through Group Policy. That is a device policy and does not replace the image method used in this guide.</li>
           <li>Do not touch the shell, the Store infrastructure, or other system components (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
         </ul>
 
         <h2 id="adim-6">Step 6: Setting the default user profile (optional)</h2>
+        <p><strong>What this step does:</strong> It sets the settings a new user sees the first time they sign in (for example dark theme and desktop icons). These settings are stored in the <code>NTUSER.DAT</code> registry file of the <code>Default</code> profile.</p>
         <ul>
-          <li><code>SetupComplete.cmd</code> runs as the Local System account, so <code>HKCU</code> writes inside it do not reach the new user. Write per-user settings to the <code>Default</code> profile hive instead (<a href="registry-and-apps.html#kayit-defteri">9.1</a>, <a href="iso-and-automation.html#setupcomplete">8.2</a>).</li>
-          <li>Load the default profile hive under a temporary name:</li>
+          <li><strong>Why not write to HKCU directly?</strong> <code>SetupComplete.cmd</code> runs as the Local System account, so <code>HKCU</code> writes inside it never reach the new user. That is why we write to the <code>Default</code> profile file instead (<a href="registry-and-apps.html#kayit-defteri">9.1</a>, <a href="iso-and-automation.html#setupcomplete">8.2</a>).</li>
+          <li>Load the profile file under a temporary name. You choose <code>MODDEFAULT</code>; it appears in Registry Editor as <code>HKLM\MODDEFAULT</code>:</li>
         </ul>
         <pre><code>reg load HKLM\MODDEFAULT "C:\Mod\Gecici\Users\Default\NTUSER.DAT"</code></pre>
         <ul>
-          <li>Write the values you want. The lines below are examples only; for the meaning of each value, see the table in <a href="registry-and-apps.html#referans-anahtarlar">9.2</a>:</li>
+          <li>The lines below are examples; skip any you do not want. What the values mean:</li>
+          <li><code>AppsUseLightTheme</code> = 0: apps use the dark theme.</li>
+          <li><code>SystemUsesLightTheme</code> = 0: the Start menu and taskbar use the dark theme.</li>
+          <li><code>{20D04FE0-...}</code> and <code>{645FF040-...}</code>: the <em>This PC</em> and <em>Recycle Bin</em> desktop icons. A value of 0 <strong>shows</strong> the icon; 1 hides it.</li>
+          <li><code>TaskbarDa</code> = 0: hides the Widgets button on the taskbar. <code>TaskbarMn</code> = 0: hides the Chat button.</li>
         </ul>
         <pre><code>reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f
 reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f
@@ -117,41 +192,76 @@ reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Hide
 reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa /t REG_DWORD /d 0 /f
 reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarMn /t REG_DWORD /d 0 /f</code></pre>
         <ul>
-          <li>Close any open Registry Editor window, then unload the hive. If the hive stays open, unloading fails (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>):</li>
+          <li>Check one of the values you wrote:</li>
+        </ul>
+        <pre><code>reg query "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa</code></pre>
+        <ul>
+          <li>If a Registry Editor window is open, close it, then unload the profile. If the hive is still in use, unloading fails (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>):</li>
         </ul>
         <pre><code>reg unload HKLM\MODDEFAULT</code></pre>
+        <blockquote>
+          <p><strong>Note:</strong> I confirmed the Widgets and Chat values using third-party sources; I could not find them in Microsoft's official documentation. Check the result on a virtual machine for both versions.</p>
+        </blockquote>
 
         <h2 id="adim-7">Step 7: Committing changes and putting install.wim back</h2>
+        <p><strong>What we are doing here:</strong> We <strong>save</strong> our changes into the image, unmount it, and then put the modified file back into the ISO's contents.</p>
         <ul>
-          <li>Close File Explorer windows and any open files under <code>C:\Mod\Gecici</code>. Unmounting can fail for these reasons (<a href="troubleshooting.html#sorun-matrisi">14.2</a>).</li>
+          <li>Close first: File Explorer windows, open files under <code>C:\Mod\Gecici</code>, and any Command Prompt window whose current folder is inside it (you used <code>cd</code> there). Open files can make unmounting fail (<a href="troubleshooting.html#sorun-matrisi">14.2</a>).</li>
           <li>Run the listing command from Step 4 again; the packages you removed should no longer appear.</li>
-          <li>Commit the changes and unmount the image:</li>
+          <li>Unmount with the <strong>Commit</strong> (save) option. When the command succeeds, you will see a message such as "The operation completed successfully":</li>
         </ul>
         <pre><code>dism /Unmount-Image /MountDir:"C:\Mod\Gecici" /Commit</code></pre>
         <ul>
-          <li>If an error occurs, review <code>%WINDIR%\Logs\Dism\dism.log</code> before considering <code>/Discard</code>, which throws away the changes (<a href="troubleshooting.html#bolum-14-1">14.1</a>).</li>
-          <li>Move the original <code>C:\Mod\Medya\sources\install.wim</code> to a backup location, then copy the modified <code>C:\Mod\install.wim</code> into <code>C:\Mod\Medya\sources</code>.</li>
+          <li>If an error occurs, do not use <code>/Discard</code> right away. First review <code>%WINDIR%\Logs\Dism\dism.log</code>. <code>/Discard</code> <strong>throws away</strong> your changes (<a href="troubleshooting.html#bolum-14-1">14.1</a>).</li>
+          <li>Update the media, following the path you used:</li>
         </ul>
+        <p><strong>Path A (install.wim):</strong> Move the original file to a backup folder, then copy the modified file into the media:</p>
+        <pre><code>mkdir C:\Mod\Yedek
+move "C:\Mod\Medya\sources\install.wim" "C:\Mod\Yedek\"
+copy "C:\Mod\install.wim" "C:\Mod\Medya\sources\"</code></pre>
+        <p><strong>Path B (install.esd):</strong> Move the original <code>install.esd</code> to the backup folder. This matters: the media must not contain two installation images at once.</p>
+        <pre><code>mkdir C:\Mod\Yedek
+move "C:\Mod\Medya\sources\install.esd" "C:\Mod\Yedek\"
+copy "C:\Mod\install.wim" "C:\Mod\Medya\sources\"</code></pre>
+        <p><strong>Check:</strong> <code>dir C:\Mod\Medya\sources\install.*</code> should show only one file, <code>install.wim</code>.</p>
 
         <h2 id="adim-8">Step 8: Creating the ISO</h2>
+        <p><strong>What we are doing here:</strong> We package the entire <code>Medya</code> folder into a single ISO file. Knowing what each part of the command does helps you know what to change if something goes wrong:</p>
         <ul>
-          <li>In an elevated Command Prompt, build the ISO. If <code>oscdimg.exe</code> is not on the PATH, use the full path you noted in Step 1:</li>
+          <li><code>-m</code>: ignores the ISO size limit.</li>
+          <li><code>-o</code>: stores identical content once instead of repeatedly, which reduces the size.</li>
+          <li><code>-u2</code>: builds the ISO with only the UDF file system. Because <code>install.wim</code> is larger than 4 GiB, the classic ISO 9660 format is not enough, so UDF is required (<a href="iso-and-automation.html#dosya-sistemi">7.3</a>).</li>
+          <li><code>-udfver102</code>: sets the UDF version to 1.02.</li>
+          <li><code>-bootdata:2#p0,...#pEF,...</code>: defines two boot entries. <code>p0</code> uses <code>etfsboot.com</code> for legacy BIOS, and <code>pEF</code> uses <code>efisys.bin</code> for UEFI. This lets the same ISO boot in either mode.</li>
+        </ul>
+        <ul>
+          <li>In an administrator Command Prompt, build the ISO. If <code>oscdimg.exe</code> is not on the PATH, put the full path you noted in Step 1 in quotes:</li>
         </ul>
         <pre><code>oscdimg -m -o -u2 -udfver102 -bootdata:2#p0,e,b"C:\Mod\Medya\boot\etfsboot.com"#pEF,e,b"C:\Mod\Medya\efi\microsoft\boot\efisys.bin" "C:\Mod\Medya" "C:\Mod\Custom.iso"</code></pre>
         <ul>
-          <li>Because <code>install.wim</code> is larger than the 4 GiB limit, UDF (<code>-u2</code>) is required (<a href="iso-and-automation.html#dosya-sistemi">7.3</a>).</li>
-          <li>Record the SHA-256 hash of the ISO: <code>Get-FileHash -Algorithm SHA256 "C:\Mod\Custom.iso"</code> (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
+          <li>The last two paths are the <strong>source folder</strong> (<code>C:\Mod\Medya</code>) and the <strong>output file</strong> (<code>C:\Mod\Custom.iso</code>). Do not place the output inside the source folder.</li>
+          <li>When it finishes, record the SHA-256 hash of the ISO. You can later use it to confirm the file has not changed. Run this in PowerShell (<a href="iso-and-automation.html#bolum-7-4">7.4</a>):</li>
         </ul>
+        <pre><code>Get-FileHash -Algorithm SHA256 "C:\Mod\Custom.iso"</code></pre>
 
         <h2 id="adim-9">Step 9: Testing in a virtual machine</h2>
+        <p><strong>What we are doing here:</strong> We confirm that the new ISO actually installs and runs, using a virtual machine before any real device.</p>
         <ul>
-          <li>Attach the ISO to a UEFI-capable virtual machine (such as a Hyper-V Generation 2 VM) and boot from it. Test BIOS and UEFI boot separately (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
-          <li>Check the logs during and after setup: <code>C:\Windows\Panther\UnattendGC\setupact.log</code> (<a href="troubleshooting.html#gunlukler">14.1</a>).</li>
-          <li>Do not write an ISO that fails testing to physical media. For troubleshooting, see the matrix in <a href="troubleshooting.html#sorun-matrisi">14.2</a>.</li>
+          <li>Create a virtual machine. For UEFI testing use Hyper-V <strong>Generation 2</strong>; for BIOS testing use <strong>Generation 1</strong>. Test the 25H2 and 26H2 ISOs separately (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
+          <li>Before installing, take a <strong>checkpoint</strong> of the virtual machine; if the test goes wrong, you can return to that point quickly.</li>
+          <li>Attach the ISO to the virtual DVD drive and boot from it.</li>
+          <li>When setup finishes, check: does Windows open, are the apps you removed absent from the Start menu, and do your default settings (theme, icons) appear?</li>
         </ul>
+        <p><strong>Log files (for finding errors):</strong> The log location depends on the setup phase (<a href="troubleshooting.html#gunlukler">14.1</a>):</p>
+        <ul>
+          <li>During setup, before the disk is formatted: <code>X:\Windows\Panther\setupact.log</code>. <code>X:</code> is the temporary drive of the setup environment.</li>
+          <li>After the disk is formatted: <code>C:\Windows\Panther\setupact.log</code>.</li>
+          <li>During the user settings (OOBE) phase: <code>C:\Windows\Panther\UnattendGC\setupact.log</code>.</li>
+        </ul>
+        <p><strong>Final note:</strong> Do not write an ISO that fails testing to physical media. For troubleshooting, see the matrix in <a href="troubleshooting.html#sorun-matrisi">14.2</a>.</p>
 
         <nav class="pager" aria-label="Page navigation"><a class="pager-link prev" href="troubleshooting.html"><span class="pager-label">← Previous</span><span class="pager-title">14–16. Troubleshooting, Glossary, and References</span></a></nav>
-        <footer class="site-footer">Document version: 2.0 · Last reviewed: November 22, 2026</footer>
+        <footer class="site-footer">Document version: 2.1 · Last reviewed: November 27, 2026</footer>
       </div>
     </main>
   </div>

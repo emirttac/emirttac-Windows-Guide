@@ -39,76 +39,151 @@
         <h1>Tutorial: Adım Adım Uygulama</h1>
 
         <blockquote>
-          <p><strong>Kullanım:</strong> Bu sayfa, rehberdeki bölümleri sırayla uygulamak isteyenler için kısa bir iş akışı sunar. Her adımın ayrıntısı ilgili bölümdedir; adım sonundaki bağlantılar o bölüme gider. Bir adımın çıktısını kontrol etmeden bir sonrakine geçmeyin.</p>
-          <p><strong>Ön koşul:</strong> Yönetici olarak açılmış Komut İstemi, çalışma sürücüsünde yeterli boş alan ve özgün medyanın yedeği. <code>C:\Mod</code> gibi yollar ve <code>&lt;N&gt;</code> gibi yer tutucular örnektir; kendi medyanıza göre değiştirin.</p>
+          <p><strong>Bu sayfa kimin için?</strong> Windows kurulum medyasını kendi bilgisayarınızda düzenlemek isteyen ama bunu daha önce yapmamış kişiler için hazırlandı. Her adımda ne yaptığımızı, neden yaptığımızı ve sonucu nasıl kontrol edeceğinizi anlatıyoruz.</p>
+          <p><strong>Kısaca ne yapacağız?</strong> Windows 11 kurulum ISO'sunu açıp içindeki kurulum dosyasını (<code>install.wim</code>) bir çalışma klasöründe değiştireceğiz, ardından bu değişikliklerle yeni bir ISO üreteceğiz. Değişiklikler; hazır uygulamaları kurulumdan çıkarmayı ve isteğe bağlı olarak varsayılan kullanıcı ayarlarını yazmayı içerir.</p>
+          <p><strong>Hangi sürümler için?</strong> Windows 11 <strong>25H2</strong> ve <strong>26H2</strong>. İki sürümün adımları aynıdır; çünkü 26H2, 25H2'nin üzerine küçük bir "enablement" paketi olarak gelir ve aynı servis dalını paylaşır. Elinizdeki ISO'nun sürümünü şöyle anlayabilirsiniz: ISO dosya adında <code>25H2</code> veya <code>26H2</code> yazabilir. Emin değilseniz 3. adımdaki <code>dism /Get-ImageInfo</code> çıktısında <strong>Version</strong> satırına bakın: <code>10.0.26200.x</code> 25H2, <code>10.0.26300.x</code> 26H2 demektir.</p>
+        </blockquote>
+
+        <blockquote>
+          <p><strong>Başlamadan önce ihtiyacınız olanlar:</strong></p>
+          <ul>
+            <li>Yönetici olarak açılmış bir Komut İstemi: Başlat menüsüne <code>cmd</code> yazın, sağ tıklayıp <strong>Yönetici olarak çalıştır</strong> seçin.</li>
+            <li>Yaklaşık 30 GB boş alan. ISO, kopyalanan medya, çalışma kopyası ve yeni ISO birlikte bu kadar yer tutabilir.</li>
+            <li>Orijinal Windows ISO dosyasının bir yedeği.</li>
+            <li>Sabır. DISM adımları bir süre hareketsiz görünebilir; yüzde ilerlemesini bekleyin.</li>
+          </ul>
+          <p><strong>Komutlar hakkında:</strong> <code>C:\Mod</code> gibi yollar örnektir. <code>&lt;N&gt;</code> gibi köşeli parantezli yerleri kendi değerinizle değiştirin ve parantezleri yazmayın.</p>
         </blockquote>
 
         <blockquote class="warn">
-          <p><strong>Uyarı:</strong> Bu akış bir sanal makinede denenmeden gerçek bir cihaza veya dağıtım medyasına uygulanmamalıdır. Edge ve WebView2 kaldırma, güvenlik özelliklerini devre dışı bırakma ve etkinleştirme atlatma adımları bu akışta yer almaz (bkz. <a href="index.html#kapsam">1</a> ve <a href="registry-and-apps.html#edge-webview2">10.4</a>).</p>
+          <p><strong>Uyarı:</strong> Bu rehberi önce bir sanal makinede deneyin; test etmeden gerçek bir bilgisayara ya da dağıtım medyasına uygulamayın. Microsoft Edge ve WebView2 kaldırma, güvenlik özelliklerini kapatma ve etkinleştirme atlatma adımları bu rehberin kapsamında değildir (bkz. <a href="index.html#kapsam">1</a> ve <a href="registry-and-apps.html#edge-webview2">10.4</a>).</p>
         </blockquote>
 
         <h2 id="adim-1">1. Adım: ADK ve oscdimg kurulumu</h2>
+        <p><strong>Bu adımda ne yapıyoruz?</strong> Microsoft'un ücretsiz <em>Windows ADK</em> araç paketini kuruyoruz. Bu paketten bize gereken tek parça <code>oscdimg.exe</code> adlı araç; yeni ISO dosyasını bu araç üretecek.</p>
         <ul>
-          <li>Microsoft'un <a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install" target="_blank" rel="noopener">Windows ADK kurulum sayfasından</a> ADK'yı indirin ve yalnızca <strong>Dağıtım Araçları</strong> (Deployment Tools) bileşenini kurun. <code>oscdimg.exe</code> bu bileşenle gelir. Sürüm seçimi için <a href="media-and-tools.html#adk-politikasi">3.3</a> bölümüne bakın.</li>
-          <li>Kurulum bittikten sonra <code>oscdimg.exe</code> dosyasının yolunu not edin. Varsayılan konum genellikle <code>...\Deployment Tools\amd64\Oscdimg\</code> klasörüdür.</li>
+          <li>Microsoft'un <a href="https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install" target="_blank" rel="noopener">Windows ADK kurulum sayfasından</a> <strong>ADK 10.1.26100.9457 (Eylül 2026)</strong> sürümünü indirin. Bu sürüm Windows 11 25H2 ve 26H2'yi destekler. Daha önce indirdiyseniz kurulum dosyasını yeniden indirin; Microsoft eski 10.1.26100.2454 sürümünün yerine bunu öneriyor.</li>
+          <li>Kurulum ekranında yalnızca <strong>Dağıtım Araçları</strong> (Deployment Tools) kutusunu işaretli bırakın. Diğer bileşenler bu rehber için gerekmez.</li>
+          <li>Dikkat: 10.1.28000.x serisi (Ekim 2026) yalnızca Windows 11 26H1 içindir; 25H2 veya 26H2 için kullanmayın.</li>
+          <li>WSIM kullanacaksanız CVE-2026-25166 için yayımlanan ADK yamasını da uygulayın (ayrıntı için <a href="media-and-tools.html#adk-politikasi">3.3</a>).</li>
+          <li>Kurulum bittiğinde <code>oscdimg.exe</code> genellikle şu klasördedir:<br><code>C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg\oscdimg.exe</code><br>Farklı bir yere kurduysanız Gezgin'de <code>oscdimg.exe</code> diye arayarak tam yolunu bulun ve not edin.</li>
         </ul>
+        <p><strong>Kontrol:</strong> Komut İstemi'nde tam yolu tırnak içinde yazın, ardından parametresiz çalıştırın. Kullanım bilgisi çıkıyorsa araç çalışıyor demektir.</p>
 
         <h2 id="adim-2">2. Adım: Çalışma ortamını hazırlama</h2>
+        <p><strong>Bu adımda ne yapıyoruz?</strong> Orijinal ISO'ya dokunmadan çalışabilmek için ayrı bir çalışma alanı kuruyoruz. ISO'nun içeriğini bir kopyaya alıyoruz ve değişiklikleri o kopyada yapıyoruz.</p>
         <ul>
-          <li><code>C:\Mod</code> klasörünü oluşturun ve içine iki klasör ekleyin: <code>Gecici</code> (bağlama dizini) ve <code>Medya</code> (ISO içeriği). Yollarda boşluk veya Türkçe karakter kullanmayın; Belgeler gibi korumalı konumları seçmeyin (<a href="media-and-tools.html#calisma-ortami">3.1</a>).</li>
-          <li>Windows 11 ISO'sunu bağlayın (sağ tık > Bağla) ve tüm içeriğini <code>C:\Mod\Medya</code> klasörüne kopyalayın.</li>
-          <li>Kopyalanan <code>install.wim</code> dosyasının salt okunur özniteliğini kaldırın ve sahipliğini alın. Yönetici Komut İstemi'nde:</li>
+          <li>Yönetici Komut İstemi'nde iki klasör oluşturun:</li>
+        </ul>
+        <pre><code>mkdir C:\Mod\Gecici
+mkdir C:\Mod\Medya</code></pre>
+        <ul>
+          <li><code>Gecici</code>: WIM dosyasını açacağımız (bağlayacağımız) boş klasör. <code>Medya</code>: ISO'nun içeriğinin kopyası.</li>
+          <li>Yollarda boşluk veya Türkçe karakter kullanmayın; Belgeler gibi korumalı klasörleri seçmeyin (<a href="media-and-tools.html#calisma-ortami">3.1</a>).</li>
+          <li>Windows 11 ISO'sunu sağ tıklayıp <strong>Bağla</strong> ile bağlayın. Yeni bir sürücü harfi (örneğin <code>E:</code>) görünecek; bu harfi not edin.</li>
+          <li>ISO'nun tüm içeriğini <code>Medya</code> klasörüne kopyalayın. <code>E:</code> yerine kendi sürücü harfinizi yazın:</li>
+        </ul>
+        <pre><code>xcopy E:\* C:\Mod\Medya\ /E /H /K /Y</code></pre>
+        <ul>
+          <li>Kopyalama birkaç dakika sürer. Bittiğinde <code>C:\Mod\Medya</code> içinde <code>boot</code>, <code>efi</code> ve <code>sources</code> klasörleri olmalıdır.</li>
+          <li>Medyadaki kurulum dosyasının adını kontrol edin. Ardından sizin durumunuza uygun yolu izleyin:</li>
+        </ul>
+        <pre><code>dir C:\Mod\Medya\sources\install.*</code></pre>
+        <ul>
+          <li>Çıktıda <code>install.wim</code> görüyorsanız aşağıdaki <strong>A yolu</strong>nu izleyin. <code>install.esd</code> görüyorsanız <strong>B yolu</strong>nu izleyin: <code>.esd</code> sıkıştırılmış bir biçimdir ve doğrudan değiştirilemez; önce <code>.wim</code>'e çevrilmesi gerekir.</li>
+        </ul>
+        <h3>A yolu: install.wim varsa</h3>
+        <ul>
+          <li>Dosyanın salt okunur özniteliğini kaldırın ve sahipliğini alıp yönetici yazma iznini verin. Bunlar olmadan dosyayı değiştiremezsiniz:</li>
         </ul>
         <pre><code>attrib -r "C:\Mod\Medya\sources\install.wim"
 takeown /F "C:\Mod\Medya\sources\install.wim"
 icacls "C:\Mod\Medya\sources\install.wim" /grant Administrators:F</code></pre>
         <ul>
-          <li><code>install.wim</code> dosyasını çalışma kopyası olarak <code>C:\Mod\install.wim</code> konumuna kopyalayın. Özgün dosya <code>C:\Mod\Medya\sources</code> içinde yedek olarak kalsın; son adıma kadar silmeyin.</li>
+          <li>Çalışma kopyasını oluşturun. Orijinal dosya <code>Medya\sources</code> içinde yedek olarak kalır; Adım 7'ye kadar silmeyin:</li>
         </ul>
+        <pre><code>copy "C:\Mod\Medya\sources\install.wim" "C:\Mod\install.wim"</code></pre>
+        <h3>B yolu: yalnızca install.esd varsa</h3>
+        <ul>
+          <li>Medyadaki sürümleri listeleyin ve kullanmak istediğiniz sürümün numarasını (indeksini) not edin:</li>
+        </ul>
+        <pre><code>dism /Get-WimInfo /WimFile:"C:\Mod\Medya\sources\install.esd"</code></pre>
+        <ul>
+          <li>Seçtiğiniz sürümü yeni bir <code>.wim</code> dosyasına aktarın. <code>&lt;N&gt;</code> yerine indeks numarasını yazın. Bu işlem geçici olarak ek disk alanı kullanır:</li>
+        </ul>
+        <pre><code>dism /Export-Image /SourceImageFile:"C:\Mod\Medya\sources\install.esd" /SourceIndex:&lt;N&gt; /DestinationImageFile:"C:\Mod\install.wim" /Compress:max /CheckIntegrity</code></pre>
+        <ul>
+          <li>Bu komut doğrudan çalışma kopyanız olan <code>C:\Mod\install.wim</code> dosyasını üretir; bu yüzden A yolundaki kopyalama adımını atlayın. Yeni dosyada yalnızca tek sürüm vardır ve indeksi genellikle <strong>1</strong> olur.</li>
+        </ul>
+        <p><strong>Kontrol:</strong> <code>dir C:\Mod\install.wim</code> dosyayı göstermeli. Boyutu sürüme göre değişmekle birlikte yaklaşık 7 GB civarındadır.</p>
 
         <h2 id="adim-3">3. Adım: WIM indeksini bulma ve bağlama</h2>
+        <p><strong>Bu adımda ne yapıyoruz?</strong> Bir <code>.wim</code> dosyasının içinde birden çok Windows sürümü (Home, Pro, Education vb.) bulunabilir. Her birinin bir numarası vardır; buna <strong>indeks</strong> denir. Üzerinde çalışacağımız sürümü bu numarayla seçer, dosyayı bir klasöre <strong>bağlarız</strong>. Böylece içindeki dosyalara ulaşıp değişiklik yapabiliriz.</p>
         <ul>
-          <li>İndeks listesini alın:</li>
+          <li>Dosyadaki sürümlerin listesini alın:</li>
         </ul>
         <pre><code>dism /Get-ImageInfo /ImageFile:"C:\Mod\install.wim"</code></pre>
         <ul>
-          <li>Çıktıda hedef sürümün <strong>Index</strong> numarasını bulun. Numarayı yalnızca bu medyanın çıktısından alın; başka bir medyadan alınan numara eşleşmeyebilir (<a href="servicing.html#medya-indeksleri">5.2</a>).</li>
-          <li><code>&lt;N&gt;</code> yerine bulduğunuz numarayı yazarak imajı bağlayın:</li>
+          <li>Çıktıda her sürüm için <strong>Index</strong>, <strong>Name</strong> ve <strong>Version</strong> satırları görünür. Hedef sürümün <strong>Index</strong> numarasını bulun (örneğin <em>Windows 11 Pro</em>). Numarayı yalnızca bu dosyanın çıktısından alın; başka bir ISO'daki numara farklı olabilir (<a href="servicing.html#medya-indeksleri">5.2</a>).</li>
+          <li><strong>Version</strong> satırı sürümünüzü de gösterir: <code>10.0.26200.x</code> 25H2, <code>10.0.26300.x</code> 26H2.</li>
+          <li>Gecici klasörünün boş olduğundan emin olun. Ardından <code>&lt;N&gt;</code> yerine bulduğunuz numarayı yazıp bağlayın. Bu işlem birkaç dakika sürebilir:</li>
         </ul>
         <pre><code>dism /Mount-Image /ImageFile:"C:\Mod\install.wim" /Index:&lt;N&gt; /MountDir:"C:\Mod\Gecici"</code></pre>
         <ul>
-          <li>Bağlamayı doğrulayın: <code>dism /Get-MountedImageInfo</code>.</li>
+          <li>Bağlamayı doğrulayın:</li>
         </ul>
+        <pre><code>dism /Get-MountedImageInfo</code></pre>
+        <p><strong>Kontrol:</strong> Çıktıda <code>C:\Mod\Gecici</code> bağlama klasörü ve <code>Status : Ok</code> görünmelidir.</p>
+        <blockquote>
+          <p><strong>Önceki denemeden kalma bir bağlama varsa:</strong> Çıktıda bağlı görünen ama klasörü açılmayan bir kayıt varsa <code>dism /Cleanup-Wim</code> komutu yarım kalmış bağlamaları temizler. Ardından bu adımı baştan yapın.</p>
+        </blockquote>
 
         <h2 id="adim-4">4. Adım: Hazır paket adlarını listeleme</h2>
+        <p><strong>Bu adımda ne yapıyoruz?</strong> Windows'un <em>hazır</em> (provisioned) uygulamalarını listeliyoruz. Bunlar, imajdan kurulumu yapılan her <strong>yeni</strong> kullanıcı hesabına otomatik kurulan Store uygulamalarıdır. Neyi çıkaracağımızı bilmek için önce bu listeye bakmamız gerekir.</p>
         <ul>
-          <li>Bağlı imajdaki hazır (provisioned) AppX paketlerini listeleyin:</li>
+          <li>Bağlı imajdaki paketleri listeleyin. Liste uzun olduğu için dosyaya kaydedip okumak daha kolaydır:</li>
         </ul>
-        <pre><code>dism /Image:"C:\Mod\Gecici" /Get-ProvisionedAppxPackages</code></pre>
+        <pre><code>dism /Image:"C:\Mod\Gecici" /Get-ProvisionedAppxPackages &gt; "C:\Mod\paketler.txt"</code></pre>
         <ul>
-          <li>Kaldırmak istediğiniz paketlerin <strong>PackageName</strong> değerlerini kopyalayın. Paket adları sürüme ve dile göre değiştiği için bu çıktıyı esas alın; başka bir sürümden alınan adlar eşleşmez (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+          <li><code>C:\Mod\paketler.txt</code> dosyasını Not Defteri ile açın.</li>
+          <li>Her kayıtta <strong>DisplayName</strong> (uygulamanın okunabilir adı) ve <strong>PackageName</strong> (komutlarda kullanılacak tam ad) yer alır. Paket adları <code>Ad_sürüm_mimari_~_yayıncı-kimliği</code> biçimindedir.</li>
+          <li>Kaldırmak istediğiniz uygulamaların <strong>PackageName</strong> değerini tam olarak kopyalayın. Adlar sürüme ve dile göre değiştiği için bu çıktıyı esas alın; başka bir sürümden alınan ad eşleşmez (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
+          <li><strong>Bu adımda hiçbir şey silmeyin.</strong> Windows'un kabuğu (Başlat, görev çubuğu, Ayarlar), Microsoft Store altyapısı ve Edge/WebView2 ile ilgili paketler kaldırma listesine girmez.</li>
         </ul>
+        <p><strong>Kontrol:</strong> <code>paketler.txt</code> içinde hem <code>DisplayName</code> hem <code>PackageName</code> satırları görünüyorsa liste doğru alınmıştır.</p>
 
         <h2 id="adim-5">5. Adım: Seçilen hazır paketleri kaldırma</h2>
+        <p><strong>Bu adımda ne yapıyoruz?</strong> Adım 4'te listelediğimiz paketlerden seçtiklerimizi, imajın "yeni kullanıcılara kurulacak" listesinden çıkarıyoruz. Bu komut yalnızca imajdaki paketi siler; sisteme kurulu başka bir şeye dokunmaz.</p>
         <ul>
-          <li>Kaldırılacakları gruplara göre seçin: iletişim uygulamaları, haber ve geri bildirim uygulamaları, Microsoft'un önceden yüklediği ek uygulamalar ve oyun artıkları. Her satırda adım 4'teki <strong>tam</strong> paket adını kullanın; joker karakter kullanmayın.</li>
-          <li>Aşağıdaki şablonu seçtiğiniz paket sayısı kadar satıra çoğaltın:</li>
+          <li>Kaldırılacakları gruplara ayırın. Örnek olarak şunlar kaldırılabilir:</li>
+          <li><strong>İletişim:</strong> <code>Microsoft.windowscommunicationsapps</code> (Posta ve Takvim)</li>
+          <li><strong>Haber ve geri bildirim:</strong> <code>Microsoft.BingNews</code>, <code>Microsoft.WindowsFeedbackHub</code></li>
+          <li><strong>Oyun artıkları:</strong> <code>Microsoft.MicrosoftSolitaireCollection</code></li>
+          <li>Yukarıdaki adlar yalnızca örnektir. Sürüm ve dile göre değişen <strong>tam</strong> <code>PackageName</code> değerini kendi listenizden kullanın. Joker karakter (<code>*</code>) kullanmayın.</li>
+          <li>Her paket için bir satır yazın. Aşağıdaki şablonu seçtiğiniz paket sayısı kadar çoğaltın:</li>
         </ul>
         <pre><code>dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;TAM_PAKET_ADI_1&gt;
 dism /Image:"C:\Mod\Gecici" /Remove-ProvisionedAppxPackage /PackageName:&lt;TAM_PAKET_ADI_2&gt;</code></pre>
         <ul>
-          <li>Hazır paket kaldırma yalnızca yeni oluşturulacak kullanıcılar için etkilidir; mevcut kullanıcıların paketleri etkilenmez (<a href="registry-and-apps.html#bolum-10-1">10.1</a>).</li>
+          <li>Komut "bulunamadı" benzeri bir hata verirse ad yanlıştır. Adı <code>paketler.txt</code> dosyasından yeniden kopyalayın.</li>
+          <li><strong>Önemli sınır:</strong> Bu komut yalnızca <em>yeni</em> oluşturulacak kullanıcıları etkiler. Mevcut kullanıcıların paketleri silinmez (<a href="registry-and-apps.html#bolum-10-1">10.1</a>).</li>
+          <li>Windows 11 26H2 sürüm notlarında Grup İlkesi ile önceden yüklü uygulamaları kaldırma seçeneği de yer alıyor. Bu bir cihaz politikasıdır; bu rehberdeki imaj yönteminin yerini tutmaz.</li>
           <li>Kabuk, Store altyapısı ve diğer sistem bileşenlerine dokunmayın (<a href="registry-and-apps.html#bolum-10-3">10.3</a>).</li>
         </ul>
 
         <h2 id="adim-6">6. Adım: Varsayılan kullanıcı profilini ayarlama (isteğe bağlı)</h2>
+        <p><strong>Bu adım ne işe yarar?</strong> Yeni bir kullanıcı ilk kez oturum açtığında hangi ayarlarla başlayacağını belirler (koyu tema, masaüstü simgeleri gibi). Bu ayarlar <code>Default</code> profilinin kayıt defteri dosyası olan <code>NTUSER.DAT</code> içinde tutulur.</p>
         <ul>
-          <li><code>SetupComplete.cmd</code> Yerel Sistem hesabıyla çalıştığı için içindeki <code>HKCU</code> yazmaları yeni kullanıcıya ulaşmaz. Kullanıcıya özel ayarları bu yüzden <code>Default</code> profil kovanına yazın (<a href="registry-and-apps.html#kayit-defteri">9.1</a>, <a href="iso-and-automation.html#setupcomplete">8.2</a>).</li>
-          <li>Varsayılan profil kovanını geçici bir ad altında yükleyin:</li>
+          <li><strong>Neden doğrudan HKCU'ya yazmıyoruz?</strong> <code>SetupComplete.cmd</code> Yerel Sistem hesabıyla çalışır; bu nedenle içindeki <code>HKCU</code> yazmaları yeni kullanıcıya ulaşmaz. Ayarları bu yüzden <code>Default</code> profilinin dosyasına yazarız (<a href="registry-and-apps.html#kayit-defteri">9.1</a>, <a href="iso-and-automation.html#setupcomplete">8.2</a>).</li>
+          <li>Profil dosyasını geçici bir ad altında yükleyin. <code>MODDEFAULT</code> adını siz seçersiniz; Kayıt Defteri'nde <code>HKLM\MODDEFAULT</code> olarak görünür:</li>
         </ul>
         <pre><code>reg load HKLM\MODDEFAULT "C:\Mod\Gecici\Users\Default\NTUSER.DAT"</code></pre>
         <ul>
-          <li>İstediğiniz değerleri yazın. Aşağıdaki satırlar yalnızca örnektir; değerlerin anlamı için <a href="registry-and-apps.html#referans-anahtarlar">9.2</a> tablosuna bakın:</li>
+          <li>Aşağıdaki satırlar örnektir; istemediğiniz satırı atlayabilirsiniz. Değerlerin anlamı:</li>
+          <li><code>AppsUseLightTheme</code> = 0: uygulamalar koyu temayı kullanır.</li>
+          <li><code>SystemUsesLightTheme</code> = 0: Başlat menüsü ve görev çubuğu koyu renk olur.</li>
+          <li><code>{20D04FE0-...}</code> ve <code>{645FF040-...}</code>: sırasıyla <em>Bu Bilgisayar</em> ve <em>Geri Dönüşüm Kutusu</em> masaüstü simgeleri. 0 değeri simgeyi <strong>gösterir</strong>, 1 gizler.</li>
+          <li><code>TaskbarDa</code> = 0: görev çubuğundaki Widgets düğmesi gizlenir. <code>TaskbarMn</code> = 0: Sohbet düğmesi gizlenir.</li>
         </ul>
         <pre><code>reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f
 reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f
@@ -117,38 +192,73 @@ reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Hide
 reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa /t REG_DWORD /d 0 /f
 reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarMn /t REG_DWORD /d 0 /f</code></pre>
         <ul>
-          <li>Kayıt Defteri Düzenleyicisi penceresi açıksa kapatın, sonra kovanı boşaltın. Kovan açık kalırsa boşaltma başarısız olur (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>):</li>
+          <li>Yazdığınız bir değeri kontrol edin:</li>
+        </ul>
+        <pre><code>reg query "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa</code></pre>
+        <ul>
+          <li>Açık bir Kayıt Defteri Düzenleyicisi penceresi varsa kapatın, sonra profili boşaltın. Kovan hâlâ açıksa boşaltma başarısız olur (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>):</li>
         </ul>
         <pre><code>reg unload HKLM\MODDEFAULT</code></pre>
+        <blockquote>
+          <p><strong>Not:</strong> Widgets ve Sohbet değerlerini üçüncü taraf kaynaklarda doğruladım; bu değerleri Microsoft'un resmi belgelerinde bulamadım. Sanal makinede her iki sürümde de sonucu görerek teyit edin.</p>
+        </blockquote>
 
         <h2 id="adim-7">7. Adım: Değişiklikleri kaydetme ve install.wim'i geri koyma</h2>
+        <p><strong>Bu adımda ne yapıyoruz?</strong> Yaptığımız değişiklikleri imaja <strong>kaydediyoruz</strong>, imajı bağlantıdan çıkarıyoruz ve değiştirilmiş dosyayı ISO'nun içine geri koyuyoruz.</p>
         <ul>
-          <li>Gezgin pencerelerini ve <code>C:\Mod\Gecici</code> içindeki açık dosyaları kapatın. Ayırma, bu nedenlerle başarısız olabilir (<a href="troubleshooting.html#sorun-matrisi">14.2</a>).</li>
-          <li>Adım 4'teki listeleme komutunu yeniden çalıştırın; kaldırdığınız paketler listede görünmemelidir.</li>
-          <li>Değişiklikleri kaydedip imajı ayırın:</li>
+          <li>Önce kapatın: Gezgin pencereleri, <code>C:\Mod\Gecici</code> içindeki açık dosyalar ve bu klasörün içinde <code>cd</code> ile durduğunuz Komut İstemi pencereleri. Açık dosya varsa ayırma başarısız olabilir (<a href="troubleshooting.html#sorun-matrisi">14.2</a>).</li>
+          <li>Adım 4'teki listeleme komutunu yeniden çalıştırın; sildiğiniz paketler artık listede görünmemelidir.</li>
+          <li><strong>Commit</strong> (kaydet) parametresiyle ayırın. Komut başarıyla bittiğinde "The operation completed successfully" benzeri bir mesaj görürsünüz:</li>
         </ul>
         <pre><code>dism /Unmount-Image /MountDir:"C:\Mod\Gecici" /Commit</code></pre>
         <ul>
-          <li>Hata alırsanız değişiklikleri atmak için <code>/Discard</code> kullanmadan önce <code>%WINDIR%\Logs\Dism\dism.log</code> dosyasını inceleyin (<a href="troubleshooting.html#bolum-14-1">14.1</a>).</li>
-          <li>Özgün <code>C:\Mod\Medya\sources\install.wim</code> dosyasını yedek konumuna taşıyın; ardından değiştirilmiş <code>C:\Mod\install.wim</code> dosyasını <code>C:\Mod\Medya\sources</code> klasörüne kopyalayın.</li>
+          <li>Hata alırsanız hemen <code>/Discard</code> kullanmayın. Önce <code>%WINDIR%\Logs\Dism\dism.log</code> dosyasını inceleyin. <code>/Discard</code> değişikliklerinizi <strong>atar</strong> ve yaptığınız işi kaybettirir (<a href="troubleshooting.html#bolum-14-1">14.1</a>).</li>
+          <li>Medyayı güncelleyin. Hangi yolu izlediyseniz ona göre devam edin.</li>
         </ul>
+        <p><strong>A yolu (install.wim):</strong> Orijinal dosyayı yedek klasöre taşıyın, değiştirilmiş dosyayı Medya'ya kopyalayın:</p>
+        <pre><code>mkdir C:\Mod\Yedek
+move "C:\Mod\Medya\sources\install.wim" "C:\Mod\Yedek\"
+copy "C:\Mod\install.wim" "C:\Mod\Medya\sources\"</code></pre>
+        <p><strong>B yolu (install.esd):</strong> Orijinal <code>install.esd</code> dosyasını yedeğe taşıyın. Medyada aynı anda iki kurulum imajı bırakmamak için bu adım önemlidir:</p>
+        <pre><code>mkdir C:\Mod\Yedek
+move "C:\Mod\Medya\sources\install.esd" "C:\Mod\Yedek\"
+copy "C:\Mod\install.wim" "C:\Mod\Medya\sources\"</code></pre>
+        <p><strong>Kontrol:</strong> <code>dir C:\Mod\Medya\sources\install.*</code> yalnızca tek bir dosya (<code>install.wim</code>) göstermelidir.</p>
 
         <h2 id="adim-8">8. Adım: ISO oluşturma</h2>
+        <p><strong>Bu adımda ne yapıyoruz?</strong> <code>Medya</code> klasörünün tüm içeriğini tek bir ISO dosyasında paketliyoruz. Komutun parçalarının ne işe yaradığını bilmek, sorun çıktığında neyi değiştireceğinizi anlamanızı sağlar:</p>
         <ul>
-          <li>Yönetici Komut İstemi'nde ISO'yu oluşturun. <code>oscdimg.exe</code> PATH içinde değilse 1. adımda not ettiğiniz tam yolu yazın:</li>
+          <li><code>-m</code>: ISO'nun boyut sınırını yok sayar.</li>
+          <li><code>-o</code>: aynı içeriği tekrar yazmak yerine tek kopyada tutar; boyutu küçültür.</li>
+          <li><code>-u2</code>: ISO'yu yalnızca UDF dosya sistemiyle üretir. <code>install.wim</code> 4 GiB'ı aştığı için klasik ISO 9660 yetmez; UDF zorunludur (<a href="iso-and-automation.html#dosya-sistemi">7.3</a>).</li>
+          <li><code>-udfver102</code>: UDF sürümünü 1.02 olarak ayarlar.</li>
+          <li><code>-bootdata:2#p0,...#pEF,...</code>: iki önyükleme girişi tanımlar. <code>p0</code> eski BIOS için <code>etfsboot.com</code>, <code>pEF</code> UEFI için <code>efisys.bin</code> dosyasını kullanır. Böylece aynı ISO iki modda da açılabilir.</li>
+        </ul>
+        <ul>
+          <li>Yönetici Komut İstemi'nde ISO'yu oluşturun. <code>oscdimg.exe</code> PATH'te değilse Adım 1'de not ettiğiniz tam yolu tırnak içinde yazın:</li>
         </ul>
         <pre><code>oscdimg -m -o -u2 -udfver102 -bootdata:2#p0,e,b"C:\Mod\Medya\boot\etfsboot.com"#pEF,e,b"C:\Mod\Medya\efi\microsoft\boot\efisys.bin" "C:\Mod\Medya" "C:\Mod\Ozel.iso"</code></pre>
         <ul>
-          <li><code>install.wim</code> dosyası 4 GiB sınırını aştığı için UDF (<code>-u2</code>) zorunludur (<a href="iso-and-automation.html#dosya-sistemi">7.3</a>).</li>
-          <li>ISO'nun SHA-256 özetini kaydedin: <code>Get-FileHash -Algorithm SHA256 "C:\Mod\Ozel.iso"</code> (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
+          <li>Komutun son iki yolu sırasıyla <strong>kaynak klasör</strong> (<code>C:\Mod\Medya</code>) ve <strong>çıktı dosyası</strong> (<code>C:\Mod\Ozel.iso</code>) değeridir. Çıktıyı kaynak klasörün içine koymayın.</li>
+          <li>Bitince ISO'nun SHA-256 özetini kaydedin. Dosyanın sonradan değişmediğini ileride bu özetle doğrulayabilirsiniz. PowerShell'de çalıştırın (<a href="iso-and-automation.html#bolum-7-4">7.4</a>):</li>
         </ul>
+        <pre><code>Get-FileHash -Algorithm SHA256 "C:\Mod\Ozel.iso"</code></pre>
 
         <h2 id="adim-9">9. Adım: Sanal makinede test etme</h2>
+        <p><strong>Bu adımda ne yapıyoruz?</strong> Yeni ISO'nun gerçekten kurulup çalıştığını, gerçek bir cihazda denemeden önce sanal makinede görüyoruz.</p>
         <ul>
-          <li>ISO'yu UEFI destekli (Hyper-V Generation 2 gibi) bir sanal makineye bağlayıp önyükleyin. BIOS ve UEFI önyüklemesini ayrı ayrı deneyin (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
-          <li>Kurulum sırasında ve sonrasında günlükleri kontrol edin: <code>C:\Windows\Panther\UnattendGC\setupact.log</code> (<a href="troubleshooting.html#gunlukler">14.1</a>).</li>
-          <li>Testi geçmeyen ISO'yu fiziksel medyaya yazmayın. Sorun giderme için <a href="troubleshooting.html#sorun-matrisi">14.2</a> matrisine bakın.</li>
+          <li>Bir sanal makine oluşturun. UEFI testi için Hyper-V <strong>Generation 2</strong>, BIOS testi için <strong>Generation 1</strong> seçin. 25H2 ve 26H2 ISO'larını ayrı ayrı deneyin (<a href="iso-and-automation.html#bolum-7-4">7.4</a>).</li>
+          <li>Kurulumdan önce sanal makinenin bir <strong>denetim noktası</strong> (checkpoint) alın; test bozulursa hızlıca geri dönebilirsiniz.</li>
+          <li>ISO'yu sanal makinenin DVD sürücüsüne takın ve önyükleyin.</li>
+          <li>Kurulum bitince kontrol edin: Windows açılıyor mu, kaldırdığınız uygulamalar Başlat menüsünde yok mu, varsayılan ayarlarınız (tema, simgeler) geliyor mu?</li>
         </ul>
+        <p><strong>Günlük dosyaları (hata aramak için):</strong> Log yolu kurulum aşamasına göre değişir (<a href="troubleshooting.html#gunlukler">14.1</a>):</p>
+        <ul>
+          <li>Kurulum sırasında, disk henüz biçimlendirilmeden: <code>X:\Windows\Panther\setupact.log</code>. <code>X:</code> kurulum ortamının geçici sürücüsüdür.</li>
+          <li>Disk biçimlendirildikten sonra: <code>C:\Windows\Panther\setupact.log</code>.</li>
+          <li>Kullanıcı ayarları (OOBE) sırasında: <code>C:\Windows\Panther\UnattendGC\setupact.log</code>.</li>
+        </ul>
+        <p><strong>Son söz:</strong> Testi geçmeyen bir ISO'yu fiziksel medyaya yazmayın. Sorunları çözmek için <a href="troubleshooting.html#sorun-matrisi">14.2</a> matrisine bakın.</p>
 
         <nav class="pager" aria-label="Sayfa gezintisi">
           <a class="pager-link prev" href="troubleshooting.html">
@@ -158,7 +268,7 @@ reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Adva
         </nav>
 
         <footer class="site-footer">
-          Belge sürümü: 2.0 · Son gözden geçirme: 22 Kasım 2026
+          Belge sürümü: 2.1 · Son gözden geçirme: 27 Kasım 2026
         </footer>
       </div>
     </main>
