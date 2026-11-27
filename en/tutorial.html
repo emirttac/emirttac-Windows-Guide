@@ -174,32 +174,21 @@ icacls "C:\Mod\Medya\sources\install.wim" /grant Administrators:F</code></pre>
         <p><strong>What this step does:</strong> It sets the settings a new user sees the first time they sign in (for example dark theme and desktop icons). These settings are stored in the <code>NTUSER.DAT</code> registry file of the <code>Default</code> profile.</p>
         <ul>
           <li><strong>Why not write to HKCU directly?</strong> <code>SetupComplete.cmd</code> runs as the Local System account, so <code>HKCU</code> writes inside it never reach the new user. That is why we write to the <code>Default</code> profile file instead (<a href="registry-and-apps.html#kayit-defteri">9.1</a>, <a href="iso-and-automation.html#setupcomplete">8.2</a>).</li>
-          <li>Load the profile file under a temporary name. You choose <code>MODDEFAULT</code>; it appears in Registry Editor as <code>HKLM\MODDEFAULT</code>:</li>
+          <li>The profile file is loaded and unloaded by the command itself: when the window closes, the profile is unloaded. You do not need to write <code>reg load</code> or <code>reg unload</code>. In an administrator <strong>Command Prompt</strong>, paste and run this <strong>single line</strong>:</li>
         </ul>
-        <pre><code>reg load HKLM\MODDEFAULT "C:\Mod\Gecici\Users\Default\NTUSER.DAT"</code></pre>
+        <pre><code>powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms,System.Drawing; $h='HKLM\MODDEFAULT'; $dat='C:\Mod\Gecici\Users\Default\NTUSER.DAT'; reg unload $h *>$null; reg load $h $dat *>$null; if ($LASTEXITCODE -ne 0) { [void][System.Windows.Forms.MessageBox]::Show('Could not load the profile. Close any open Registry Editor window and try again.','Error','OK','Error'); return }; $tema='Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'; $gezgin='Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'; $simge='Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel'; $ayar=@(@{t='Dark theme: apps';k=$tema;v='AppsUseLightTheme'},@{t='Dark theme: Start and taskbar';k=$tema;v='SystemUsesLightTheme'},@{t='Desktop: show This PC icon';k=$simge;v='{20D04FE0-3AEA-1069-A2D8-08002B30309D}'},@{t='Desktop: show Recycle Bin icon';k=$simge;v='{645FF040-5081-101B-9F08-00AA002F954E}'},@{t='Taskbar: hide Widgets button';k=$gezgin;v='TaskbarDa'},@{t='Taskbar: hide Chat button';k=$gezgin;v='TaskbarMn'}); $clb=New-Object System.Windows.Forms.CheckedListBox; $clb.Dock='Fill'; $clb.CheckOnClick=$true; foreach ($a in $ayar) { [void]$clb.Items.Add($a.t) }; for ($i=0; $i -lt $ayar.Count; $i++) { $clb.SetItemChecked($i,$true) }; $bar=New-Object System.Windows.Forms.FlowLayoutPanel; $bar.Dock='Bottom'; $bar.Height=50; $bAll=New-Object System.Windows.Forms.Button; $bAll.Text='Select all'; $bAll.Width=110; $bOk=New-Object System.Windows.Forms.Button; $bOk.Text='Apply'; $bOk.Name='uygula'; $bOk.Width=110; $bCancel=New-Object System.Windows.Forms.Button; $bCancel.Text='Cancel'; $bCancel.Width=110; $bar.Controls.AddRange(@($bAll,$bOk,$bCancel)); $f=New-Object System.Windows.Forms.Form; $f.Text='Default user profile settings'; $f.Size=New-Object System.Drawing.Size(700,420); $f.StartPosition='CenterScreen'; $f.Name='form'; $f.Controls.Add($clb); $f.Controls.Add($bar); $bAll.Add_Click({ for ($i=0; $i -lt $clb.Items.Count; $i++) { $clb.SetItemChecked($i,$true) } }); $bCancel.Add_Click({ $f.Close() }); $bOk.Add_Click({ foreach ($i in @($clb.CheckedIndices)) { $a=$ayar[$i]; & reg add ($h+'\'+$a.k) /v ($a.v) /t REG_DWORD /d 0 /f *>$null; if ($LASTEXITCODE -eq 0) { Write-Host ('Written: '+$a.t) } else { Write-Host ('NOT WRITTEN: '+$a.t) } }; $f.Close() }); try { [void]$f.ShowDialog() } finally { reg unload $h *>$null; if ($LASTEXITCODE -eq 0) { Write-Host 'Profile unloaded.' } else { Write-Host 'Could not unload the profile: close Registry Editor and try again.' } }"</code></pre>
         <ul>
-          <li>The lines below are examples; skip any you do not want. What the values mean:</li>
-          <li><code>AppsUseLightTheme</code> = 0: apps use the dark theme.</li>
-          <li><code>SystemUsesLightTheme</code> = 0: the Start menu and taskbar use the dark theme.</li>
-          <li><code>{20D04FE0-...}</code> and <code>{645FF040-...}</code>: the <em>This PC</em> and <em>Recycle Bin</em> desktop icons. A value of 0 <strong>shows</strong> the icon; 1 hides it.</li>
-          <li><code>TaskbarDa</code> = 0: hides the Widgets button on the taskbar. <code>TaskbarMn</code> = 0: hides the Chat button.</li>
+          <li>In the window, tick the settings you want. All of them are ticked by default; untick the ones you do not want. <strong>Select all</strong> ticks them all again.</li>
+          <li><strong>Apply</strong> writes the ticked settings to the profile and closes the window. The console shows a <code>Written:</code> line for each setting. A setting that cannot be written is shown as <code>NOT WRITTEN:</code>; the other settings are still written.</li>
+          <li><strong>Cancel</strong> writes nothing. When the window closes, the profile is unloaded and the console shows <code>Profile unloaded.</code></li>
+          <li>If the profile cannot be unloaded (you see a <code>Could not unload the profile</code> message), close any open Registry Editor window and run the command again (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>).</li>
+          <li>What the settings mean:</li>
+          <li><strong>Dark theme:</strong> apps and the Start menu and taskbar use the dark theme.</li>
+          <li><strong>Desktop icons:</strong> <em>This PC</em> and <em>Recycle Bin</em> are shown.</li>
+          <li><strong>Widgets and Chat:</strong> these buttons on the taskbar are hidden.</li>
         </ul>
-        <pre><code>reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{645FF040-5081-101B-9F08-00AA002F954E}" /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarMn /t REG_DWORD /d 0 /f</code></pre>
-        <ul>
-          <li>Check one of the values you wrote:</li>
-        </ul>
-        <pre><code>reg query "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa</code></pre>
-        <ul>
-          <li>If a Registry Editor window is open, close it, then unload the profile. If the hive is still in use, unloading fails (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>):</li>
-        </ul>
-        <pre><code>reg unload HKLM\MODDEFAULT</code></pre>
         <blockquote>
-          <p><strong>Note:</strong> I confirmed the Widgets and Chat values using third-party sources; I could not find them in Microsoft's official documentation. Check the result on a virtual machine for both versions.</p>
+          <p><strong>Note:</strong> I confirmed the Widgets and Chat values using third-party sources; I could not find them in Microsoft's official documentation. On some Windows 11 versions the Widgets value may not be writable; the command then shows <code>NOT WRITTEN</code>. Check the result on a virtual machine for both versions.</p>
         </blockquote>
 
         <h2 id="adim-7">Step 7: Committing changes and putting install.wim back</h2>

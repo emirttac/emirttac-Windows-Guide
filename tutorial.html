@@ -174,32 +174,21 @@ icacls "C:\Mod\Medya\sources\install.wim" /grant Administrators:F</code></pre>
         <p><strong>Bu adım ne işe yarar?</strong> Yeni bir kullanıcı ilk kez oturum açtığında hangi ayarlarla başlayacağını belirler (koyu tema, masaüstü simgeleri gibi). Bu ayarlar <code>Default</code> profilinin kayıt defteri dosyası olan <code>NTUSER.DAT</code> içinde tutulur.</p>
         <ul>
           <li><strong>Neden doğrudan HKCU'ya yazmıyoruz?</strong> <code>SetupComplete.cmd</code> Yerel Sistem hesabıyla çalışır; bu nedenle içindeki <code>HKCU</code> yazmaları yeni kullanıcıya ulaşmaz. Ayarları bu yüzden <code>Default</code> profilinin dosyasına yazarız (<a href="registry-and-apps.html#kayit-defteri">9.1</a>, <a href="iso-and-automation.html#setupcomplete">8.2</a>).</li>
-          <li>Profil dosyasını geçici bir ad altında yükleyin. <code>MODDEFAULT</code> adını siz seçersiniz; Kayıt Defteri'nde <code>HKLM\MODDEFAULT</code> olarak görünür:</li>
+          <li>Profil dosyasını komut kendisi yükler ve pencere kapanınca boşaltır; <code>reg load</code> ya da <code>reg unload</code> yazmanız gerekmez. Komutu yönetici olarak açılmış bir <strong>Komut İstemi</strong> penceresinde, tek satır olarak çalıştırın:</li>
         </ul>
-        <pre><code>reg load HKLM\MODDEFAULT "C:\Mod\Gecici\Users\Default\NTUSER.DAT"</code></pre>
+        <pre><code>powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms,System.Drawing; $h='HKLM\MODDEFAULT'; $dat='C:\Mod\Gecici\Users\Default\NTUSER.DAT'; reg unload $h *>$null; reg load $h $dat *>$null; if ($LASTEXITCODE -ne 0) { [void][System.Windows.Forms.MessageBox]::Show('Profil yuklenemedi. Acik bir Kayit Defteri Duzenleyicisi penceresini kapatip tekrar deneyin.','Hata','OK','Error'); return }; $tema='Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'; $gezgin='Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'; $simge='Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel'; $ayar=@(@{t='Koyu tema: uygulamalar';k=$tema;v='AppsUseLightTheme'},@{t='Koyu tema: Baslat ve gorev cubugu';k=$tema;v='SystemUsesLightTheme'},@{t='Masaustu: Bu Bilgisayar simgesini goster';k=$simge;v='{20D04FE0-3AEA-1069-A2D8-08002B30309D}'},@{t='Masaustu: Geri Donusum Kutusu simgesini goster';k=$simge;v='{645FF040-5081-101B-9F08-00AA002F954E}'},@{t='Gorev cubugu: Widgets dugmesini gizle';k=$gezgin;v='TaskbarDa'},@{t='Gorev cubugu: Sohbet dugmesini gizle';k=$gezgin;v='TaskbarMn'}); $clb=New-Object System.Windows.Forms.CheckedListBox; $clb.Dock='Fill'; $clb.CheckOnClick=$true; foreach ($a in $ayar) { [void]$clb.Items.Add($a.t) }; for ($i=0; $i -lt $ayar.Count; $i++) { $clb.SetItemChecked($i,$true) }; $bar=New-Object System.Windows.Forms.FlowLayoutPanel; $bar.Dock='Bottom'; $bar.Height=50; $bAll=New-Object System.Windows.Forms.Button; $bAll.Text='Tumunu sec'; $bAll.Width=110; $bOk=New-Object System.Windows.Forms.Button; $bOk.Text='Uygula'; $bOk.Name='uygula'; $bOk.Width=110; $bCancel=New-Object System.Windows.Forms.Button; $bCancel.Text='Iptal'; $bCancel.Width=110; $bar.Controls.AddRange(@($bAll,$bOk,$bCancel)); $f=New-Object System.Windows.Forms.Form; $f.Text='Varsayilan kullanici profili ayarlari'; $f.Size=New-Object System.Drawing.Size(700,420); $f.StartPosition='CenterScreen'; $f.Name='form'; $f.Controls.Add($clb); $f.Controls.Add($bar); $bAll.Add_Click({ for ($i=0; $i -lt $clb.Items.Count; $i++) { $clb.SetItemChecked($i,$true) } }); $bCancel.Add_Click({ $f.Close() }); $bOk.Add_Click({ foreach ($i in @($clb.CheckedIndices)) { $a=$ayar[$i]; & reg add ($h+'\'+$a.k) /v ($a.v) /t REG_DWORD /d 0 /f *>$null; if ($LASTEXITCODE -eq 0) { Write-Host ('Yazildi: '+$a.t) } else { Write-Host ('YAZILAMADI: '+$a.t) } }; $f.Close() }); try { [void]$f.ShowDialog() } finally { reg unload $h *>$null; if ($LASTEXITCODE -eq 0) { Write-Host 'Profil bosaltildi.' } else { Write-Host 'Profil bosaltilamadi: Kayit Defteri Duzenleyicisi penceresini kapatip tekrar deneyin.' } }"</code></pre>
         <ul>
-          <li>Aşağıdaki satırlar örnektir; istemediğiniz satırı atlayabilirsiniz. Değerlerin anlamı:</li>
-          <li><code>AppsUseLightTheme</code> = 0: uygulamalar koyu temayı kullanır.</li>
-          <li><code>SystemUsesLightTheme</code> = 0: Başlat menüsü ve görev çubuğu koyu renk olur.</li>
-          <li><code>{20D04FE0-...}</code> ve <code>{645FF040-...}</code>: sırasıyla <em>Bu Bilgisayar</em> ve <em>Geri Dönüşüm Kutusu</em> masaüstü simgeleri. 0 değeri simgeyi <strong>gösterir</strong>, 1 gizler.</li>
-          <li><code>TaskbarDa</code> = 0: görev çubuğundaki Widgets düğmesi gizlenir. <code>TaskbarMn</code> = 0: Sohbet düğmesi gizlenir.</li>
+          <li>Pencerede istediğiniz ayarların kutucuğunu işaretleyin. Varsayılan olarak hepsi işaretlidir; istemediklerinizin işaretini kaldırın. <strong>Tümünü seç</strong> düğmesiyle hepsini yeniden işaretleyebilirsiniz.</li>
+          <li><strong>Uygula</strong> işaretli ayarları profile yazar ve pencereyi kapatır. Konsolda her ayar için <code>Yazildi:</code> satırı görünür. Yazılamayan bir ayar <code>YAZILAMADI:</code> olarak gösterilir; diğer ayarlar yine de yazılır.</li>
+          <li><strong>İptal</strong> hiçbir şey yazmaz. Pencere kapandığında profil otomatik boşaltılır ve konsolda <code>Profil bosaltildi.</code> görünür.</li>
+          <li>Profil boşaltılamazsa (<code>Profil bosaltilamadi</code> mesajı) açık bir Kayıt Defteri Düzenleyicisi penceresini kapatıp komutu tekrar çalıştırın (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>).</li>
+          <li>Pencerede ayarların anlamı:</li>
+          <li><strong>Koyu tema:</strong> uygulamalar ve Başlat/görev çubuğu koyu renk olur.</li>
+          <li><strong>Masaüstü simgeleri:</strong> <em>Bu Bilgisayar</em> ve <em>Geri Dönüşüm Kutusu</em> gösterilir.</li>
+          <li><strong>Widgets ve Sohbet:</strong> görev çubuğundaki bu düğmeler gizlenir.</li>
         </ul>
-        <pre><code>reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{645FF040-5081-101B-9F08-00AA002F954E}" /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa /t REG_DWORD /d 0 /f
-reg add "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarMn /t REG_DWORD /d 0 /f</code></pre>
-        <ul>
-          <li>Yazdığınız bir değeri kontrol edin:</li>
-        </ul>
-        <pre><code>reg query "HKLM\MODDEFAULT\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa</code></pre>
-        <ul>
-          <li>Açık bir Kayıt Defteri Düzenleyicisi penceresi varsa kapatın, sonra profili boşaltın. Kovan hâlâ açıksa boşaltma başarısız olur (<a href="registry-and-apps.html#yukleme-bosaltma">9.3</a>):</li>
-        </ul>
-        <pre><code>reg unload HKLM\MODDEFAULT</code></pre>
         <blockquote>
-          <p><strong>Not:</strong> Widgets ve Sohbet değerlerini üçüncü taraf kaynaklarda doğruladım; bu değerleri Microsoft'un resmi belgelerinde bulamadım. Sanal makinede her iki sürümde de sonucu görerek teyit edin.</p>
+          <p><strong>Not:</strong> Widgets ve Sohbet değerlerini üçüncü taraf kaynaklarda doğruladım; bu değerleri Microsoft'un resmi belgelerinde bulamadım. Widgets değeri bazı Windows 11 sürümlerinde yazılamayabilir; komut bu durumda <code>YAZILAMADI</code> gösterir. Sanal makinede her iki sürümde de sonucu görerek teyit edin.</p>
         </blockquote>
 
         <h2 id="adim-7">7. Adım: Değişiklikleri kaydetme ve install.wim'i geri koyma</h2>
