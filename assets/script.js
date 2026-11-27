@@ -57,6 +57,10 @@
       '<a href="https://www.instagram.com/emirttac/" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>' +
       '<a href="https://discord.gg/MvPZnSjY2Q" aria-label="Discord" title="Discord"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 4.4a19.8 19.8 0 0 0-4.9-1.5 13.8 13.8 0 0 0-.6 1.2 18.4 18.4 0 0 0-5.6 0 13.8 13.8 0 0 0-.6-1.2 19.8 19.8 0 0 0-4.9 1.5C.6 9 .1 13.5.4 17.9a19.9 19.9 0 0 0 6 3.1c.5-.7.9-1.4 1.3-2.1-.7-.3-1.4-.6-2-1 .2-.2.4-.3.5-.4 3.9 1.8 8.1 1.8 11.9 0l.6.4c-.7.4-1.3.7-2 1 .4.7.8 1.4 1.3 2.1a19.9 19.9 0 0 0 6-3.1c.4-5.1-.6-9.5-3.7-13.5ZM8.1 15.2c-1.1 0-2-1-2-2.2s.9-2.2 2-2.2 2 1 2 2.2-.9 2.2-2 2.2Zm7.8 0c-1.1 0-2-1-2-2.2s.9-2.2 2-2.2 2 1 2 2.2-.9 2.2-2 2.2Z"/></svg></a>' +
       '<a href="https://emirttac.github.io/#top" aria-label="' + (isEnglish ? "Website" : "Web sitesi") + '" title="' + (isEnglish ? "Website" : "Web sitesi") + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9s1-6.5 3.5-9Z"/></svg></a>';
+    socialLinks.querySelectorAll("a").forEach(function (link) {
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    });
     sidebar.appendChild(socialLinks);
   }
 

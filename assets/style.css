@@ -155,6 +155,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   position: sticky;
   top: var(--header-height);
   align-self: start;
+  display: flex;
+  flex-direction: column;
   height: calc(100vh - var(--header-height));
   overflow-y: auto;
   background: var(--sidebar);
@@ -170,6 +172,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   text-transform: uppercase;
 }
 .nav-list, .nav-sub { list-style: none; margin: 0; padding: 0; }
+.nav-group-title, .nav-list { flex-shrink: 0; }
 .nav-list > li { margin: 3px 0; }
 .nav-link {
   display: block;
@@ -185,7 +188,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 .nav-sub { margin: 6px 0 14px 13px; padding-left: 12px; border-left: 1px solid var(--border); }
 .nav-sub a { display: block; padding: 4px 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .nav-sub a:hover { color: var(--text); }
-.social-links { display: flex; gap: 8px; margin: 24px 12px 0; padding-top: 16px; border-top: 1px solid var(--border); }
+.social-links { display: flex; flex-shrink: 0; justify-content: center; gap: 8px; margin: auto 12px 0; padding-top: 24px; }
 .social-links a { display: grid; place-items: center; width: 38px; height: 38px; color: var(--muted); }
 .social-links a:hover { color: var(--text); background: var(--surface); }
 .social-links svg { width: 20px; height: 20px; }
